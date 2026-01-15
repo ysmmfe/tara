@@ -1,14 +1,3 @@
----
-title: Tara
-emoji: 🔥
-colorFrom: green
-colorTo: emerald
-sdk: docker
-pinned: false
-license: mit
-short_description: Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde
----
-
 #  Tara <img src="static/logo.png" alt="Tara" width="35" height="35">
 
 Agente que recebe um cardápio e calcula a quantidade de gramas de cada alimento para sua refeição, baseado no seu perfil de saúde.
