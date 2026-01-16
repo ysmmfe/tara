@@ -2,7 +2,8 @@
 name = "tara"
 version = "0.1.0"
 description = "Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde"
-authors = [{name = "Yasmim"}, {name = "Camille"}]
+authors = [{name = "Yasmim Ferreira"}, {name = "Camille Martins"}]
+license = {text = "MIT"}
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -12,5 +13,5 @@ dependencies = [
     "pydantic>=2.9.2",
 ]
 
-[tool.uv]
-dev-dependencies = []
+[dependency-groups]
+dev = []
