@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from .calculator import Sex, ActivityLevel, calculate_profile
 from .agent import analyze_menu
+from .taco import search_food, list_classes, search_by_class
 
 load_dotenv()
 
@@ -75,6 +76,26 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/foods")
+def search_foods(q: str, limit: int = 10):
+    """Busca alimentos na base TBCA."""
+    if len(q) < 2:
+        raise HTTPException(status_code=400, detail="Termo de busca muito curto")
+    return search_food(q, limit=limit)
+
+
+@app.get("/api/foods/classes")
+def get_food_classes():
+    """Lista todas as categorias de alimentos."""
+    return list_classes()
+
+
+@app.get("/api/foods/class/{classe}")
+def get_foods_by_class(classe: str, limit: int = 20):
+    """Busca alimentos por categoria."""
+    return search_by_class(classe, limit=limit)
 
 
 # Serve static files
