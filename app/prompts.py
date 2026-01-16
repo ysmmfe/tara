@@ -1,3 +1,6 @@
+from .taco import search_food
+
+
 SYSTEM_PROMPT = """Você é um agente especializado em calcular porções ideais de alimentos baseado no perfil de saúde de uma pessoa.
 Sua tarefa é analisar um cardápio de restaurante e recomendar a melhor combinação de alimentos 
 para uma pessoa em déficit calórico.
@@ -34,6 +37,30 @@ Responda SEMPRE em JSON válido com a seguinte estrutura:
 }"""
 
 
+def _build_food_reference(menu_text: str) -> str:
+    """Busca dados nutricionais da TBCA para os alimentos do cardápio."""
+    from .agent import extract_foods  # lazy import para evitar ciclo
+    items = extract_foods(menu_text)
+    
+    references = []
+    for item in items:
+        results = search_food(item, limit=1)
+        if results:
+            food = results[0]
+            n = food["por_100g"]
+            references.append(
+                f"- {item}: {n['calorias']:.0f} kcal, "
+                f"{n['proteina_g']:.1f}g prot, "
+                f"{n['carboidrato_g']:.1f}g carb, "
+                f"{n['gordura_g']:.1f}g gord (por 100g)"
+            )
+    
+    if not references:
+        return ""
+    
+    return "DADOS NUTRICIONAIS DE REFERÊNCIA (TBCA - por 100g):\n" + "\n".join(references)
+
+
 def build_user_prompt(profile: dict, menu_text: str, meal_type: str = "almoco") -> str:
     macros = profile["macros"]
     meals = profile["meals"]
@@ -52,6 +79,9 @@ def build_user_prompt(profile: dict, menu_text: str, meal_type: str = "almoco") 
     
     # Pega informações da refeição atual
     current_meal = meals.get(meal_type, meals.get("almoco"))
+    
+    # Busca dados nutricionais da TBCA
+    food_reference = _build_food_reference(menu_text)
     
     prompt = f"""PERFIL DO USUÁRIO:
 - Meta calórica diária: {target_calories} kcal (déficit de {int(profile['deficit_percent'] * 100)}%)
@@ -73,8 +103,11 @@ Meta para esta refeição:
 CARDÁPIO DO RESTAURANTE:
 {menu_text}
 
+{food_reference}
+
 Analise o cardápio e escolha os melhores alimentos para esta refeição ({current_meal['nome']}), 
-indicando a quantidade em gramas de cada um. Lembre-se: a pessoa está em déficit calórico 
-e quer emagrecer de forma saudável, preservando massa muscular."""
+indicando a quantidade em gramas de cada um. USE OS DADOS NUTRICIONAIS DE REFERÊNCIA acima para 
+calcular as porções. A pessoa está em déficit calórico e quer emagrecer de forma saudável, 
+preservando massa muscular."""
 
     return prompt
