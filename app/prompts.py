@@ -1,64 +1,50 @@
-from .taco import search_food
+SYSTEM_PROMPT = """Você é um assistente nutricional prático (não substitui nutricionista) especializado em montar porções em gramas para refeições, com foco em déficit calórico e adesão.
 
+OBJETIVO
+Você recebe um perfil nutricional calculado (meta calórica diária, macros e distribuição das refeições) e o cardápio da refeição atual.
+Sua tarefa é:
+1) escolher quais itens do cardápio serão consumidos (nem tudo precisa entrar),
+2) definir a quantidade em gramas/ml de cada item escolhido,
+3) manter a refeição dentro do limite calórico da refeição atual,
+4) justificar cada escolha de forma concisa (saciedade, densidade calórica, previsibilidade, seletividade alimentar, equilibrio),
+5) oferecer 2-3 variações de ajuste ("se quiser mais X, reduza Y"), mantendo o mesmo limite.
 
-SYSTEM_PROMPT = """Você é um agente especializado em calcular porções ideais de alimentos baseado no perfil de saúde de uma pessoa.
-Sua tarefa é analisar um cardápio de restaurante e recomendar a melhor combinação de alimentos 
-para uma pessoa em déficit calórico.
+REGRAS DE DECISAO (use sempre)
+- Priorize 1 proteina principal (quando existir) para saciedade.
+- Escolha 1 carbo principal. Se houver muitos carboidratos (arroz, macarrao, macaxeira, cuscuz, baiao), selecione apenas 1 como base e, no maximo, 1 complemento pequeno.
+- Itens muito densos em calorias (farofa, pao de alho, maionese, manteiga, frituras) entram em porcoes pequenas e medidas.
+- Bebidas caloricas (sucos) devem ter porcao pequena e medida; priorize agua quando o limite estiver apertado.
+- Se faltar proteina na lista, use ovos/derivados disponiveis como complemento, controlando gordura.
+- Respeite seletividade: evite misturas complexas e ofereca prato simples com poucas variacoes.
+- Trate a meta da refeicao como limite: mire em 85-100% do limite, a menos que o usuario peça para bater exatamente.
+- Seja explicito quando estimar calorias: use valores medios e informe que variam por receita/oleo.
 
-REGRAS IMPORTANTES:
-1. Sempre priorize proteínas magras para preservar massa muscular
-2. Inclua vegetais e fibras para saciedade, se estiver no cardápio.
-3. Evite frituras, molhos cremosos e carboidratos refinados
-4. Considere o equilíbrio entre os macronutrientes
-5. Seja realista com as porções - pessoas comem em restaurantes, não em laboratórios
-6. Justifique cada escolha de forma educativa mas concisa
-
-FORMATO DE RESPOSTA:
-Responda SEMPRE em JSON válido com a seguinte estrutura:
+FORMATO DE SAIDA (obrigatorio)
+Responda SOMENTE com JSON valido e sem texto extra, com a seguinte estrutura:
 {
     "escolhas": [
         {
             "alimento": "nome do alimento",
-            "gramas": quantidade em gramas,
-            "calorias_estimadas": número,
-            "proteina_g": número,
-            "carboidrato_g": número,
-            "gordura_g": número,
-            "justificativa": "breve explicação"
+            "gramas": numero,
+            "calorias_estimadas": numero,
+            "proteina_g": numero,
+            "carboidrato_g": numero,
+            "gordura_g": numero,
+            "justificativa": "breve explicacao"
         }
     ],
     "total": {
-        "calorias": número,
-        "proteina_g": número,
-        "carboidrato_g": número,
-        "gordura_g": número
+        "calorias": numero,
+        "proteina_g": numero,
+        "carboidrato_g": numero,
+        "gordura_g": numero
     },
-    "dica": "Uma dica prática sobre a refeição"
-}"""
+    "dica": "Inclua 2-3 ajustes rapidos no formato: Se quiser mais X, reduza Y assim: ..."
+}
 
-
-def _build_food_reference(menu_text: str) -> str:
-    """Busca dados nutricionais da TBCA para os alimentos do cardápio."""
-    from .agent import extract_foods  # lazy import para evitar ciclo
-    items = extract_foods(menu_text)
-    
-    references = []
-    for item in items:
-        results = search_food(item, limit=1)
-        if results:
-            food = results[0]
-            n = food["por_100g"]
-            references.append(
-                f"- {item}: {n['calorias']:.0f} kcal, "
-                f"{n['proteina_g']:.1f}g prot, "
-                f"{n['carboidrato_g']:.1f}g carb, "
-                f"{n['gordura_g']:.1f}g gord (por 100g)"
-            )
-    
-    if not references:
-        return ""
-    
-    return "DADOS NUTRICIONAIS DE REFERÊNCIA (TBCA - por 100g):\n" + "\n".join(references)
+COMPORTAMENTO
+- Nao faca diagnostico medico.
+- Seja direto, com numeros e referencias visuais simples (concha/colher) quando util."""
 
 
 def build_user_prompt(profile: dict, menu_text: str, meal_type: str = "almoco") -> str:
@@ -80,9 +66,6 @@ def build_user_prompt(profile: dict, menu_text: str, meal_type: str = "almoco") 
     # Pega informações da refeição atual
     current_meal = meals.get(meal_type, meals.get("almoco"))
     
-    # Busca dados nutricionais da TBCA
-    food_reference = _build_food_reference(menu_text)
-    
     prompt = f"""PERFIL DO USUÁRIO:
 - Meta calórica diária: {target_calories} kcal (déficit de {int(profile['deficit_percent'] * 100)}%)
 - Macros alvo por dia:
@@ -103,11 +86,8 @@ Meta para esta refeição:
 CARDÁPIO DO RESTAURANTE:
 {menu_text}
 
-{food_reference}
-
 Analise o cardápio e escolha os melhores alimentos para esta refeição ({current_meal['nome']}), 
-indicando a quantidade em gramas de cada um. USE OS DADOS NUTRICIONAIS DE REFERÊNCIA acima para 
-calcular as porções. A pessoa está em déficit calórico e quer emagrecer de forma saudável, 
+indicando a quantidade em gramas de cada um. A pessoa está em déficit calórico e quer emagrecer de forma saudável, 
 preservando massa muscular."""
 
     return prompt

@@ -33,3 +33,65 @@ def test_analyze_menu_stub_client(monkeypatch):
     result = analyze_menu(profile, "Frango grelhado\nArroz branco", "almoco")
 
     assert result["escolhas"][0]["alimento"] == "stub"
+
+
+@pytest.mark.unit
+def test_fallback_tries_next_model(monkeypatch):
+    import json
+    import app.agent as agent_module
+
+    class _Message:
+        def __init__(self, content: str):
+            self.content = content
+
+    class _Choice:
+        def __init__(self, content: str):
+            self.message = _Message(content)
+
+    class _Response:
+        def __init__(self, content: str):
+            self.choices = [_Choice(content)]
+
+    class FailingClient:
+        def __init__(self):
+            self.chat = self
+            self.completions = self
+
+        def create(self, model: str, messages: list[dict], **kwargs):
+            if model == "gpt-5.2":
+                raise RuntimeError("model down")
+            return _Response(json.dumps(["arroz"]))
+
+    monkeypatch.setattr(agent_module, "Client", FailingClient)
+    foods = extract_foods("Arroz")
+    assert foods == ["arroz"]
+
+
+@pytest.mark.unit
+def test_get_chat_with_fallback_returns_response(monkeypatch):
+    import json
+    import app.agent as agent_module
+
+    class _Message:
+        def __init__(self, content: str):
+            self.content = content
+
+    class _Choice:
+        def __init__(self, content: str):
+            self.message = _Message(content)
+
+    class _Response:
+        def __init__(self, content: str):
+            self.choices = [_Choice(content)]
+
+    class StubClient:
+        def __init__(self):
+            self.chat = self
+            self.completions = self
+
+        def create(self, model: str, messages: list[dict], **kwargs):
+            return _Response(json.dumps(["feijao"]))
+
+    monkeypatch.setattr(agent_module, "Client", StubClient)
+    response = agent_module.get_chat_with_fallback([{"role": "user", "content": "x"}])
+    assert response.choices[0].message.content == "[\"feijao\"]"
