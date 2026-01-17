@@ -137,20 +137,22 @@ def calculate_macros(
     }
 
     protein_g = weight_kg * protein_factors[activity_level]
-    protein_calories = protein_g * 4
+    protein_g_rounded = round(protein_g)
+    protein_calories_rounded = protein_g_rounded * 4
 
-    fat_calories = min(target_calories * 0.25, max(0, target_calories - protein_calories))
+    fat_calories = min(target_calories * 0.25, max(0, target_calories - protein_calories_rounded))
+    fat_calories_rounded = round(fat_calories)
     fat_g = fat_calories / 9
 
-    carb_calories = max(0, target_calories - protein_calories - fat_calories)
+    carb_calories = max(0, target_calories - protein_calories_rounded - fat_calories_rounded)
     carb_g = carb_calories / 4
 
     return {
-        "protein_g": round(protein_g),
+        "protein_g": protein_g_rounded,
         "fat_g": round(fat_g),
         "carbs_g": round(max(0, carb_g)),
-        "protein_calories": round(protein_calories),
-        "fat_calories": round(fat_calories),
+        "protein_calories": protein_calories_rounded,
+        "fat_calories": fat_calories_rounded,
         "carbs_calories": round(max(0, carb_calories)),
     }
 
