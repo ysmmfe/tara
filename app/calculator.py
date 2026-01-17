@@ -109,25 +109,41 @@ def calculate_deficit_calories(tdee: float, deficit_percent: float = 0.20) -> fl
     return tdee * (1 - deficit_percent)
 
 
-def calculate_macros(target_calories: float, weight_kg: float) -> dict:
+def calculate_macros(
+    target_calories: float,
+    weight_kg: float,
+    activity_level: ActivityLevel,
+) -> dict:
     """
     Calcula distribuição de macronutrientes para perda de gordura.
     
-    Distribuição baseada em recomendações da SBAN (Sociedade Brasileira de Alimentação e Nutrição):
-    - Carboidratos: 65% do VET (SBAN: 60-70%)
-    - Proteínas: 12% do VET (SBAN: 10-12%)
-    - Lipídios: 23% do VET (SBAN: 20-25%)
+    Proteínas baseadas em faixas ISSN (2017), aplicadas por nível de atividade:
+    - Sedentário: 1.4 g/kg/dia
+    - Leve: 1.5 g/kg/dia
+    - Moderado: 1.6 g/kg/dia
+    - Ativo: 1.8 g/kg/dia
+    - Muito Ativo: 2.0 g/kg/dia
+
+    Gordura fixa em 25% do VET e carboidratos completam o restante.
     
     Conversão: Proteína/Carb = 4 kcal/g, Gordura = 9 kcal/g
     """
-    carb_calories = target_calories * 0.65
-    carb_g = carb_calories / 4
+    protein_factors = {
+        ActivityLevel.SEDENTARY: 1.4,
+        ActivityLevel.LIGHT: 1.5,
+        ActivityLevel.MODERATE: 1.6,
+        ActivityLevel.ACTIVE: 1.8,
+        ActivityLevel.VERY_ACTIVE: 2.0,
+    }
 
-    protein_calories = target_calories * 0.12
-    protein_g = protein_calories / 4
+    protein_g = weight_kg * protein_factors[activity_level]
+    protein_calories = protein_g * 4
 
-    fat_calories = target_calories * 0.23
+    fat_calories = min(target_calories * 0.25, max(0, target_calories - protein_calories))
     fat_g = fat_calories / 9
+
+    carb_calories = max(0, target_calories - protein_calories - fat_calories)
+    carb_g = carb_calories / 4
 
     return {
         "protein_g": round(protein_g),
@@ -178,7 +194,7 @@ def calculate_profile(
     bmr = calculate_bmr(weight_kg, height_cm, age, sex)
     tdee = calculate_tdee(bmr, activity_level)
     target_calories = calculate_deficit_calories(tdee, deficit_percent)
-    macros = calculate_macros(target_calories, weight_kg)
+    macros = calculate_macros(target_calories, weight_kg, activity_level)
     meals = calculate_meals_distribution(target_calories, macros, meals_per_day)
 
     result = {
@@ -193,7 +209,7 @@ def calculate_profile(
             "bmr": "Mifflin-St Jeor (1990)",
             "activity_factors": "FAO/OMS",
             "deficit": "ABESO / ACSM",
-            "macros": "SBAN (Carb 65%, Prot 12%, Gord 23%)",
+            "macros": "ISSN 2017 (Proteina g/kg) + Gordura 25% VET",
             "meals": "Guia Alimentar para a População Brasileira",
         },
     }
