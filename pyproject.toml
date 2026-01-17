@@ -23,6 +23,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
     "unit: unit tests",
     "integration: integration tests",
