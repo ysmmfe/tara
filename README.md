@@ -96,7 +96,7 @@ Issues com label `good first issue` são ideais para começar.
 | TMB | Mifflin-St Jeor (1990) |
 | Fatores de Atividade | FAO/OMS |
 | Déficit 20% | ABESO / ACSM |
-| Macros (Carb 65%, Prot 12%, Gord 23%) | SBAN |
+| Macros (Proteína g/kg + Gordura 25% VET) | ISSN (2017) |
 | Distribuição de Refeições | Guia Alimentar para a População Brasileira |
 
 ## Licença

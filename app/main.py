@@ -8,11 +8,12 @@ from dotenv import load_dotenv
 
 from .calculator import Sex, ActivityLevel, calculate_profile
 from .agent import analyze_menu
-from .taco import search_food, list_classes, search_by_class
+from .logger import get_logger
 
 load_dotenv()
 
 app = FastAPI(title="Tara", description="Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde")
+logger = get_logger()
 
 
 class ProfileRequest(BaseModel):
@@ -50,6 +51,7 @@ def calculate_user_profile(request: ProfileRequest):
         )
         return profile
     except Exception as e:
+        logger.exception("Erro ao calcular perfil: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -72,30 +74,13 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
         result = analyze_menu(profile, request.menu_text, request.meal_type)
         return {"profile": profile, "recommendation": result}
     except ValueError as e:
+        logger.warning("Erro de validacao no analyze: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.exception("Erro inesperado no analyze: %s", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@app.get("/api/foods")
-def search_foods(q: str, limit: int = 10):
-    """Busca alimentos na base TBCA."""
-    if len(q) < 2:
-        raise HTTPException(status_code=400, detail="Termo de busca muito curto")
-    return search_food(q, limit=limit)
-
-
-@app.get("/api/foods/classes")
-def get_food_classes():
-    """Lista todas as categorias de alimentos."""
-    return list_classes()
-
-
-@app.get("/api/foods/class/{classe}")
-def get_foods_by_class(classe: str, limit: int = 20):
-    """Busca alimentos por categoria."""
-    return search_by_class(classe, limit=limit)
 
 
 # Serve static files

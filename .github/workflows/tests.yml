@@ -1,0 +1,41 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Run unit and integration tests
+        run: uv run pytest -m "not e2e"
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Start API
+        run: |
+          PYTHONPATH=tests/support uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 &
+          echo $! > /tmp/uvicorn.pid
+          sleep 2
+      - name: Run e2e tests
+        run: uv run pytest -m e2e
+      - name: Stop API
+        if: always()
+        run: |
+          if [ -f /tmp/uvicorn.pid ]; then
+            kill "$(cat /tmp/uvicorn.pid)" || true
+          fi
