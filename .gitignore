@@ -1,5 +1,4 @@
 __pycache__/
 .venv/
-uv.lock
 .dart-sdk-linux/
 .flutter/
