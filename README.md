@@ -37,9 +37,9 @@ O servidor vai rodar em `http://localhost:8000`.
 
 ## Uso
 
-### Interface Web
+### Landing Page
 
-Os arquivos da interface estática ficam em `tara/web`. Sirva separadamente ou abra `tara/web/index.html`.
+Os arquivos da landing page ficam em `tara/web`. Sirva separadamente ou abra `tara/web/index.html`.
 
 ### Via API
 
