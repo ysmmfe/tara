@@ -15,6 +15,16 @@ api_v1_router = APIRouter(prefix="/api/v1")
 logger = get_logger()
 
 
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "tara-api"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+
 class ProfileRequest(BaseModel):
     weight_kg: float
     height_cm: float
