@@ -1,6 +1,6 @@
 import traceback
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -11,6 +11,7 @@ from .logger import get_logger
 load_dotenv()
 
 app = FastAPI(title="Tara", description="Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde")
+api_v1_router = APIRouter(prefix="/api/v1")
 logger = get_logger()
 
 
@@ -32,7 +33,7 @@ class AnalyzeRequest(BaseModel):
     meal_type: str = "almoco"
 
 
-@app.post("/api/profile")
+@api_v1_router.post("/profile")
 def calculate_user_profile(request: ProfileRequest):
     """Calcula metas nutricionais baseadas no perfil do usuário."""
     try:
@@ -53,7 +54,7 @@ def calculate_user_profile(request: ProfileRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/api/analyze")
+@api_v1_router.post("/analyze")
 def analyze_menu_endpoint(request: AnalyzeRequest):
     """Analisa cardápio e retorna recomendações."""
     try:
@@ -78,6 +79,9 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
         logger.exception("Erro inesperado no analyze: %s", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+app.include_router(api_v1_router)
 
 
 

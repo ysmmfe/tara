@@ -16,7 +16,7 @@ def test_e2e_profile_and_analyze():
     }
 
     with httpx.Client(base_url=base_url, timeout=10) as client:
-        profile_response = client.post("/api/profile", json=profile_payload)
+        profile_response = client.post("/api/v1/profile", json=profile_payload)
         assert profile_response.status_code == 200
 
         analyze_payload = {
@@ -24,5 +24,5 @@ def test_e2e_profile_and_analyze():
             "menu_text": "Frango grelhado\nArroz branco",
             "meal_type": "almoco",
         }
-        analyze_response = client.post("/api/analyze", json=analyze_payload)
+        analyze_response = client.post("/api/v1/analyze", json=analyze_payload)
         assert analyze_response.status_code == 200

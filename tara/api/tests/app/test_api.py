@@ -22,7 +22,7 @@ def test_api_profile_and_analyze(monkeypatch):
         "meals_per_day": 4,
     }
 
-    profile_response = client.post("/api/profile", json=profile_payload)
+    profile_response = client.post("/api/v1/profile", json=profile_payload)
     assert profile_response.status_code == 200
     profile = profile_response.json()
     assert "macros" in profile
@@ -33,7 +33,7 @@ def test_api_profile_and_analyze(monkeypatch):
         "meal_type": "almoco",
     }
 
-    analyze_response = client.post("/api/analyze", json=analyze_payload)
+    analyze_response = client.post("/api/v1/analyze", json=analyze_payload)
     assert analyze_response.status_code == 200
     data = analyze_response.json()
     assert "recommendation" in data

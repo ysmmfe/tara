@@ -27,11 +27,10 @@ git clone https://github.com/ysmmfe/tara.git
 cd tara
 
 # Instale as dependências
-cd tara/api
 uv sync
 
 # Rode o servidor
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 O servidor vai rodar em `http://localhost:8000`.
@@ -47,7 +46,7 @@ Os arquivos da interface estática ficam em `tara/web`. Sirva separadamente ou a
 **1. Calcular perfil nutricional:**
 
 ```bash
-curl -X POST http://localhost:8000/api/profile \
+curl -X POST http://localhost:8000/api/v1/profile \
   -H "Content-Type: application/json" \
   -d '{
     "weight_kg": 70,
@@ -63,7 +62,7 @@ curl -X POST http://localhost:8000/api/profile \
 **2. Analisar cardápio:**
 
 ```bash
-curl -X POST http://localhost:8000/api/analyze \
+curl -X POST http://localhost:8000/api/v1/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "profile": {

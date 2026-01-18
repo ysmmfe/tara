@@ -17,11 +17,10 @@ git clone https://github.com/seu-usuario/tara.git
 cd tara
 
 # Instale as dependências
-cd tara/api
 uv sync
 
 # Rode o servidor
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 O servidor vai rodar em `http://localhost:8000`.
@@ -68,8 +67,7 @@ git checkout -b fix/nome-do-bug
 ### 4. Teste localmente
 
 ```bash
-cd tara/api
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 ### 5. Commit e Push

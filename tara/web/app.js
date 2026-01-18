@@ -100,7 +100,7 @@ function getProfileData() {
 
 async function calculateAndDisplayProfile(data) {
   try {
-    const response = await fetch("/api/profile", {
+    const response = await fetch("/api/v1/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -183,7 +183,7 @@ menuForm.addEventListener("submit", async (e) => {
   loading.classList.remove("hidden");
 
   try {
-    const response = await fetch("/api/analyze", {
+    const response = await fetch("/api/v1/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
