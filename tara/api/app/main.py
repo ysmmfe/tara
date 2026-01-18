@@ -1,8 +1,6 @@
 import traceback
 
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -83,10 +81,3 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
 
 
 
-# Serve static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-@app.get("/")
-def serve_index():
-    return FileResponse("static/index.html")

@@ -1,4 +1,4 @@
-# Tara <img src="static/logo.png" alt="Tara" width="35" height="35">
+# Tara <img src="tara/web/logo.png" alt="Tara" width="35" height="35">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -27,6 +27,7 @@ git clone https://github.com/ysmmfe/tara.git
 cd tara
 
 # Instale as dependências
+cd tara/api
 uv sync
 
 # Rode o servidor
@@ -37,9 +38,9 @@ O servidor vai rodar em `http://localhost:8000`.
 
 ## Uso
 
-### Via Interface Web
+### Interface Web
 
-Acesse `http://localhost:8000` no navegador, configure seu perfil e cole o cardápio.
+Os arquivos da interface estática ficam em `tara/web`. Sirva separadamente ou abra `tara/web/index.html`.
 
 ### Via API
 
