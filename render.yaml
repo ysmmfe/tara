@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: tara-api
+    env: python
+    plan: free
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PYTHONPATH
+        value: tara/api
+      - key: PYTHONUNBUFFERED
+        value: "1"

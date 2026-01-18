@@ -1,0 +1,67 @@
+name: Continuous Integration
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Run unit and integration tests
+        run: PYTHONPATH=tara/api uv run pytest -m "not e2e"
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Start API
+        run: |
+          PYTHONPATH=tara/api:tara/api/tests/support uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 &
+          echo $! > /tmp/uvicorn.pid
+          sleep 2
+      - name: Run e2e tests
+        run: PYTHONPATH=tara/api uv run pytest -m e2e
+      - name: Stop API
+        if: always()
+        run: |
+          if [ -f /tmp/uvicorn.pid ]; then
+            kill "$(cat /tmp/uvicorn.pid)" || true
+          fi
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Install dependencies
+        working-directory: tara/mobile
+        run: flutter pub get
+      - name: Analyze
+        working-directory: tara/mobile
+        run: flutter analyze
+      - name: Test
+        working-directory: tara/mobile
+        run: flutter test
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JS syntax
+        run: node --check tara/web/app.js

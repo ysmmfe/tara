@@ -20,7 +20,7 @@ cd tara
 uv sync
 
 # Rode o servidor
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 O servidor vai rodar em `http://localhost:8000`.
@@ -29,14 +29,18 @@ O servidor vai rodar em `http://localhost:8000`.
 
 ```
 tara/
-├── app/
-│   ├── main.py        # FastAPI app e rotas
-│   ├── agent.py       # Lógica do agente
-│   ├── calculator.py  # Cálculos de TMB, TDEE, macros
-│   ├── prompts.py     # Prompts para o LLM
-│   └── food_api.py    # API de alimentos
-├── static/            # Frontend (HTML, CSS, JS)
-└── pyproject.toml     # Dependências
+├── tara/
+│   ├── api/
+│   │   ├── app/
+│   │   │   ├── main.py        # FastAPI app e rotas
+│   │   │   ├── agent.py       # Lógica do agente
+│   │   │   ├── calculator.py  # Cálculos de TMB, TDEE, macros
+│   │   │   └── prompts.py     # Prompts para o LLM
+│   │   ├── tests/             # Testes do backend
+│   │   └── pyproject.toml     # Dependências
+│   ├── mobile/                # App Flutter
+│   └── web/                   # Landing page
+└── docs/                      # Documentação
 ```
 
 ## Como Contribuir
@@ -63,7 +67,7 @@ git checkout -b fix/nome-do-bug
 ### 4. Teste localmente
 
 ```bash
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 ### 5. Commit e Push

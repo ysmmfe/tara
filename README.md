@@ -1,4 +1,4 @@
-# Tara <img src="static/logo.png" alt="Tara" width="35" height="35">
+# Tara <img src="tara/web/logo.png" alt="Tara" width="35" height="35">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -30,23 +30,23 @@ cd tara
 uv sync
 
 # Rode o servidor
-uv run uvicorn app.main:app --reload
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 O servidor vai rodar em `http://localhost:8000`.
 
 ## Uso
 
-### Via Interface Web
+### Interface Web
 
-Acesse `http://localhost:8000` no navegador, configure seu perfil e cole o cardápio.
+Os arquivos da interface estática ficam em `tara/web`. Sirva separadamente ou abra `tara/web/index.html`.
 
 ### Via API
 
 **1. Calcular perfil nutricional:**
 
 ```bash
-curl -X POST http://localhost:8000/api/profile \
+curl -X POST http://localhost:8000/api/v1/profile \
   -H "Content-Type: application/json" \
   -d '{
     "weight_kg": 70,
@@ -62,7 +62,7 @@ curl -X POST http://localhost:8000/api/profile \
 **2. Analisar cardápio:**
 
 ```bash
-curl -X POST http://localhost:8000/api/analyze \
+curl -X POST http://localhost:8000/api/v1/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "profile": {
