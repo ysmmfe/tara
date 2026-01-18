@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'screens/menu_input_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/results_screen.dart';
+import 'screens/splash_screen.dart';
+import 'state/theme_state.dart';
+import 'theme/brand_theme.dart';
+
+class TaraApp extends ConsumerWidget {
+  const TaraApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeControllerProvider);
+    return MaterialApp(
+      title: 'Tara',
+      theme: BrandTheme.light(),
+      darkTheme: BrandTheme.dark(),
+      themeMode: themeMode,
+      initialRoute: SplashScreen.routeName,
+      routes: {
+        SplashScreen.routeName: (_) => const SplashScreen(),
+        ProfileScreen.routeName: (_) => const ProfileScreen(),
+        MenuInputScreen.routeName: (_) => const MenuInputScreen(),
+        ResultsScreen.routeName: (_) => const ResultsScreen(),
+      },
+    );
+  }
+}
