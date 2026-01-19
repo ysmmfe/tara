@@ -4,7 +4,11 @@ import '../services/api_client.dart';
 import 'profile_state.dart';
 
 final apiBaseUrlProvider = Provider<String>((ref) {
-  return 'http://10.0.2.2:8000';
+  const url = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://tara-ukju.onrender.com',
+  );
+  return url;
 });
 
 final apiClientProvider = Provider<ApiClient>((ref) {
