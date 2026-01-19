@@ -1,187 +1,283 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tara - Agente de Nutrição</title>
-    <link rel="icon" type="image/png" href="/static/logo.png" />
-    <link rel="stylesheet" href="/static/style.css" />
+    <title>Tara - nutrição inteligente, open source</title>
+    <meta
+      name="description"
+      content="Tara ajuda a transformar cardápios em porções ideais com base no seu perfil. Baixe o APK e conheça a documentação open source."
+    />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./landing.css" />
   </head>
   <body>
-    <!-- Profile Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo-container">
-          <img src="/static/logo.png" alt="Tara" class="sidebar-logo" />
-          <h2>Seu Perfil</h2>
-        </div>
-        <button class="close-btn" onclick="toggleSidebar()">✕</button>
+    <div class="bg-wrap">
+      <div class="bg-orb orb-a"></div>
+      <div class="bg-orb orb-b"></div>
+      <div class="bg-orb orb-c"></div>
+      <div class="bg-grid"></div>
+    </div>
+
+    <header class="site-header" data-reveal>
+      <div class="brand">
+        <img src="./logo.png" alt="Logo Tara" />
+        <span>Tara</span>
       </div>
-
-      <form id="profile-form">
-        <div class="form-group">
-          <label for="weight">Peso (kg)</label>
-          <input
-            type="number"
-            id="weight"
-            step="0.1"
-            required
-            placeholder="70"
-          />
-        </div>
-        <div class="form-group">
-          <label for="height">Altura (cm)</label>
-          <input type="number" id="height" required placeholder="170" />
-        </div>
-        <div class="form-group">
-          <label for="age">Idade</label>
-          <input type="number" id="age" required placeholder="30" />
-        </div>
-        <div class="form-group">
-          <label for="sex">Sexo</label>
-          <select id="sex" required>
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="activity">Nível de Atividade</label>
-          <select id="activity" required>
-            <option value="sedentary">Sedentário</option>
-            <option value="light">Leve (1-3x/semana)</option>
-            <option value="moderate" selected>Moderado (3-5x/semana)</option>
-            <option value="active">Ativo (6-7x/semana)</option>
-            <option value="very_active">Muito Ativo</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="deficit">Déficit (%)</label>
-          <input
-            type="number"
-            id="deficit"
-            value="20"
-            min="5"
-            max="30"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="meals-per-day">Refeições por dia</label>
-          <select id="meals-per-day" required>
-            <option value="3">3 refeições</option>
-            <option value="4" selected>4 refeições</option>
-            <option value="5">5 refeições</option>
-            <option value="6">6 refeições</option>
-          </select>
-        </div>
-
-        <details class="optional-fields">
-          <summary>Campos opcionais</summary>
-          <div class="form-group">
-            <label for="body-fat">% Gordura Corporal</label>
-            <input type="number" id="body-fat" step="0.1" placeholder="20" />
-          </div>
-          <div class="form-group">
-            <label for="lean-mass">Massa Magra (kg)</label>
-            <input type="number" id="lean-mass" step="0.1" placeholder="55" />
-          </div>
-        </details>
-
-        <button type="submit" class="btn btn-primary">Salvar Perfil</button>
-      </form>
-
-      <div id="profile-stats" class="profile-stats hidden">
-        <h3>Suas Metas Diárias</h3>
-        <div class="stats-grid" id="stats"></div>
+      <nav class="site-nav">
+        <a href="#produto">Produto</a>
+        <a href="#como">Como funciona</a>
+        <a href="#apk">APK</a>
+        <a href="#opensource">Open source</a>
+        <a href="#marca">Marca</a>
+      </nav>
+      <div class="header-cta">
+        <a class="btn" href="https://github.com/ysmmfe/tara/releases">Baixar APK</a>
       </div>
-    </aside>
+    </header>
 
-    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    <!-- Main Content -->
-    <div class="container">
-      <header>
-        <button class="profile-btn" onclick="toggleSidebar()" id="profile-btn">
-          <span class="profile-icon">👤</span>
-          <span class="profile-status" id="profile-status">Configurar</span>
-        </button>
-        <div class="header-center">
-          <div class="logo-container">
-            <img src="/static/logo.png" alt="Tara" class="logo" />
-            <h1>Tara</h1>
+    <main>
+      <section class="hero" id="produto">
+        <div class="hero-text" data-reveal data-delay="100">
+          <div class="pill">Agente de nutrição + open source</div>
+          <h1>
+            Seu guia para escolhas inteligentes no restaurante, em minutos.
+          </h1>
+          <p>
+            Tara recebe o cardápio, entende seu perfil e entrega porções ideais
+            por refeição. Planejamento simples, com base científica e foco em
+            resultados reais.
+          </p>
+          <div class="hero-actions">
+            <a class="btn" href="#apk">Quero o APK</a>
+            <a class="btn ghost" href="#opensource">Ver documentação</a>
           </div>
-          <p class="subtitle">Seu assistente de nutrição inteligente</p>
-        </div>
-        <div class="header-right">
-          <button
-            id="theme-toggle"
-            class="theme-toggle-btn"
-            title="Alternar tema"
-          ></button>
-        </div>
-      </header>
-
-      <main>
-        <!-- Menu Section -->
-        <section class="card" id="menu-section">
-          <h2>🍽️ Cardápio do Restaurante</h2>
-          <form id="menu-form">
-            <div class="form-group">
-              <label for="meal-type">Qual refeição você vai fazer?</label>
-              <select id="meal-type" required>
-                <option value="cafe_da_manha">Café da Manhã</option>
-                <option value="lanche_manha">Lanche da Manhã</option>
-                <option value="almoco" selected>Almoço</option>
-                <option value="lanche_tarde">Lanche da Tarde</option>
-                <option value="jantar">Jantar</option>
-                <option value="ceia">Ceia</option>
-              </select>
+          <div class="hero-stats">
+            <div>
+              <strong>+2 endpoints</strong>
+              <span>API direta e simples</span>
             </div>
-            <div class="form-group">
-              <label for="menu">Cole ou digite os itens do cardápio:</label>
-              <textarea
-                id="menu"
-                rows="10"
-                required
-                placeholder="Ex:
-Frango grelhado
-Arroz branco
-Feijão
-Salada de alface e tomate
-Farofa
-Batata frita
-Lasanha
-Strogonoff de frango
-Peixe assado
-Legumes refogados"
-              ></textarea>
+            <div>
+              <strong>Macros claros</strong>
+              <span>Proteína, carbo, gordura</span>
             </div>
-            <button type="submit" class="btn btn-primary" id="analyze-btn">
-              Analisar Cardápio
-            </button>
-          </form>
-        </section>
+            <div>
+              <strong>Open source</strong>
+              <span>MIT, pronto para fork</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-art" data-reveal data-delay="200">
+          <div class="screen">
+            <div class="screen-header">
+              <span>Refeição do dia</span>
+              <span class="status">Almoço</span>
+            </div>
+            <div class="screen-body">
+              <div class="macro-card">
+                <span>Calorias</span>
+                <strong>540 kcal</strong>
+              </div>
+              <div class="macro-card">
+                <span>Proteína</span>
+                <strong>38 g</strong>
+              </div>
+              <div class="macro-card">
+                <span>Carbo</span>
+                <strong>64 g</strong>
+              </div>
+              <div class="macro-card">
+                <span>Gordura</span>
+                <strong>18 g</strong>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <p>Cardápio analisado em segundos.</p>
+              <button type="button">Gerar recomendação</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- Results Section -->
-        <section class="card hidden" id="results-section">
-          <h2>✅ Recomendação</h2>
-          <div id="recommendation"></div>
-        </section>
-      </main>
+      <section class="section highlight" data-reveal>
+        <div>
+          <h2>O que Tara resolve</h2>
+          <p>
+            Entre a teoria e o prato, Tara faz a ponte. Você informa seu perfil e
+            o cardápio, e recebe uma recomendação objetiva para cada refeição.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <h3>Perfil inteligente</h3>
+            <p>
+              Calcula TMB, TDEE e macros com base em idade, peso, sexo, nível de
+              atividade e objetivo.
+            </p>
+          </article>
+          <article>
+            <h3>Distribuição por refeição</h3>
+            <p>
+              Divide calorias diárias em café da manhã, almoço, jantar e
+              lanches.
+            </p>
+          </article>
+          <article>
+            <h3>Recomendação objetiva</h3>
+            <p>
+              Seleciona os melhores pratos e define quantidades em gramas por
+              item.
+            </p>
+          </article>
+        </div>
+      </section>
 
-      <footer>
+      <section class="section steps" id="como">
+        <div class="section-title" data-reveal>
+          <h2>Como funciona na prática</h2>
+          <p>
+            Do cadastro ao prato final, tudo pensado para ser rápido e claro.
+          </p>
+        </div>
+        <div class="step-grid">
+          <div class="step" data-reveal data-delay="100">
+            <span>01</span>
+            <h3>Monte seu perfil</h3>
+            <p>Informe medidas, atividade e objetivo de déficit.</p>
+          </div>
+          <div class="step" data-reveal data-delay="200">
+            <span>02</span>
+            <h3>Cole o cardápio</h3>
+            <p>Tara interpreta itens, prepara as opções e calcula macros.</p>
+          </div>
+          <div class="step" data-reveal data-delay="300">
+            <span>03</span>
+            <h3>Receba a sugestão</h3>
+            <p>Recomendação pronta para o seu prato do momento.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section apk" id="apk" data-reveal>
+        <div>
+          <h2>APK pronto para Android</h2>
+          <p>
+            Instale o Tara no seu Android e leve a recomendação para qualquer
+            restaurante. O app funciona em conexão com a API do projeto.
+          </p>
+          <ul>
+            <li>Compatibilidade Android 9+</li>
+            <li>Modo rápido para refeições do dia a dia</li>
+            <li>Perfil salvo localmente</li>
+          </ul>
+        </div>
+        <div class="apk-actions">
+          <a class="btn" href="https://github.com/ysmmfe/tara/releases">Baixar APK</a>
+          <a class="btn ghost" href="#opensource">Ver documentação</a>
+        </div>
+      </section>
+
+      <section class="section" id="opensource">
+        <div class="section-title" data-reveal>
+          <h2>Documentação open source</h2>
+          <p>
+            Tara é mantida em open source para acelerar pesquisa, forks e novas
+            integrações.
+          </p>
+        </div>
+        <div class="doc-grid">
+          <article data-reveal data-delay="100">
+            <h3>API rápida</h3>
+            <p>Endpoints simples para integrar em qualquer front-end.</p>
+            <pre><code>POST /api/v1/profile
+POST /api/v1/analyze</code></pre>
+            <a href="https://github.com/ysmmfe/tara#uso">Ver exemplos</a>
+          </article>
+          <article data-reveal data-delay="200">
+            <h3>Setup local</h3>
+            <p>Python 3.11+, uv e FastAPI para rodar em minutos.</p>
+            <pre><code>uv sync
+PYTHONPATH=tara/api uv run uvicorn app.main:app --reload</code></pre>
+            <a href="https://github.com/ysmmfe/tara#instalacao">Guia completo</a>
+          </article>
+          <article data-reveal data-delay="300">
+            <h3>Contribua</h3>
+            <p>Issues e PRs bem-vindos. Ajude com testes, UX e dados.</p>
+            <pre><code>CONTRIBUTING.md
+LICENSE (MIT)</code></pre>
+            <a href="https://github.com/ysmmfe/tara/blob/main/CONTRIBUTING.md"
+              >Como contribuir</a
+            >
+          </article>
+        </div>
+      </section>
+
+      <section class="section brand" id="marca">
+        <div class="section-title" data-reveal>
+          <h2>Perfil e marca</h2>
+          <p>
+            Tara é direto, humano e confiável. A marca existe para simplificar a
+            nutrição sem perder base científica.
+          </p>
+        </div>
+        <div class="brand-grid">
+          <div class="brand-card" data-reveal data-delay="100">
+            <h3>Público</h3>
+            <p>Pessoas que comem fora e querem resultados sem planilhas.</p>
+          </div>
+          <div class="brand-card" data-reveal data-delay="200">
+            <h3>Promessa</h3>
+            <p>Decisões claras na hora do prato, com porções explicadas.</p>
+          </div>
+          <div class="brand-card" data-reveal data-delay="300">
+            <h3>Tom de voz</h3>
+            <p>Direto, motivador, sem jargão técnico desnecessário.</p>
+          </div>
+          <div class="brand-card" data-reveal data-delay="400">
+            <h3>Valores</h3>
+            <p>Ciência, inclusão, autonomia e resultados mensuráveis.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section sources" data-reveal>
+        <div>
+          <h2>Fontes científicas</h2>
+          <p>
+            Cálculos baseados em literatura reconhecida e diretrizes
+            nutricionais.
+          </p>
+        </div>
+        <div class="sources-grid">
+          <span>Mifflin-St Jeor (1990)</span>
+          <span>FAO/OMS - fatores de atividade</span>
+          <span>ABESO / ACSM - déficit</span>
+          <span>ISSN (2017) - macros</span>
+          <span>Guia Alimentar BR</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-reveal>
+      <div>
+        <h3>Pronto para experimentar?</h3>
         <p>
-          Tara - Feito para ajudar você a fazer escolhas alimentares mais
-          inteligentes
+          Baixe o APK ou rode o projeto localmente. Tara está pronto para sua
+          rotina.
         </p>
-      </footer>
-    </div>
+      </div>
+      <div class="footer-actions">
+        <a class="btn" href="https://github.com/ysmmfe/tara/releases">Baixar APK</a>
+        <a class="btn ghost" href="https://github.com/ysmmfe/tara">GitHub</a>
+      </div>
+    </footer>
 
-    <div id="loading" class="loading hidden">
-      <div class="spinner"></div>
-      <p>Analisando cardápio...</p>
-    </div>
-
-    <script src="/static/app.js"></script>
+    <script src="./landing.js"></script>
   </body>
 </html>
