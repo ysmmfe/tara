@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile.dart';
 import '../state/profile_state.dart';
 import 'menu_input_screen.dart';
+import 'profile_summary_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -160,12 +161,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       if (!context.mounted) {
                         return;
                       }
-                      final navigator = Navigator.of(context);
-                      if (navigator.canPop()) {
-                        navigator.pop();
-                      } else {
-                        navigator.pushNamed(MenuInputScreen.routeName);
-                      }
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        ProfileSummaryScreen.routeName,
+                        (route) => route.settings.name ==
+                            MenuInputScreen.routeName,
+                      );
                     }
                   : null,
               child: const Text('Salvar perfil'),

@@ -6,6 +6,7 @@ import '../state/menu_state.dart';
 import '../state/profile_state.dart';
 import '../state/theme_state.dart';
 import 'profile_screen.dart';
+import 'profile_summary_screen.dart';
 import 'results_screen.dart';
 
 class MenuInputScreen extends ConsumerWidget {
@@ -29,7 +30,10 @@ class MenuInputScreen extends ConsumerWidget {
           icon: const Icon(Icons.person_outline),
           tooltip: 'Perfil',
           onPressed: () {
-            Navigator.of(context).pushNamed(ProfileScreen.routeName);
+            final routeName = profile.isComplete
+                ? ProfileSummaryScreen.routeName
+                : ProfileScreen.routeName;
+            Navigator.of(context).pushNamed(routeName);
           },
         ),
         actions: [
