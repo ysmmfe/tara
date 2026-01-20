@@ -60,9 +60,16 @@ class _Response:
 def _build_provider():
     return IterListProvider(list(_FALLBACK_PROVIDERS), shuffle=False)
 
+def _default_create_client():
+    return G4FClient()
+
+
+def _create_client():
+    return _default_create_client()
+
 
 def _call_chat_completion(messages: list[dict], model: str, provider):
-    client = G4FClient()
+    client = _create_client()
     return client.chat.completions.create(
         model=model,
         messages=messages,
@@ -84,6 +91,9 @@ def _build_response_from_content(content: str):
 
 
 def _call_with_timeout(messages: list[dict], model: str):
+    if _create_client is not _default_create_client:
+        return _call_chat_completion(messages, model, _build_provider())
+
     ctx = mp.get_context("spawn")
     result_queue = ctx.Queue(maxsize=1)
     process = ctx.Process(

@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,7 +11,7 @@ def test_api_profile_and_analyze(monkeypatch):
     from tests.support.g4f.client import Client as StubClient
     import app.agent as agent_module
 
-    monkeypatch.setattr(agent_module, "Client", StubClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
     client = TestClient(app)
 
     profile_payload = {
@@ -35,5 +37,19 @@ def test_api_profile_and_analyze(monkeypatch):
 
     analyze_response = client.post("/api/v1/analyze", json=analyze_payload)
     assert analyze_response.status_code == 200
-    data = analyze_response.json()
-    assert "recommendation" in data
+    job_id = analyze_response.json()["job_id"]
+
+    result = None
+    for _ in range(20):
+        status_response = client.get(f"/api/v1/analyze/{job_id}")
+        assert status_response.status_code == 200
+        payload = status_response.json()
+        if payload["status"] == "done":
+            result = payload["result"]
+            break
+        if payload["status"] == "error":
+            pytest.fail(payload["error"] or "Job falhou")
+        time.sleep(0.05)
+
+    assert result is not None
+    assert "recommendation" in result
