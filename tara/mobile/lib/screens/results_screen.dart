@@ -193,11 +193,11 @@ class _TotalsCard extends StatelessWidget {
               ),
               _TotalItem(
                 value: _formatNumber(totals['proteina_g'], 'g'),
-                label: 'proteina',
+                label: 'proteína',
               ),
               _TotalItem(
                 value: _formatNumber(totals['carboidrato_g'], 'g'),
-                label: 'carbs',
+                label: 'carboidratos',
               ),
               _TotalItem(
                 value: _formatNumber(totals['gordura_g'], 'g'),

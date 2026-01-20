@@ -6,6 +6,7 @@ import '../state/menu_state.dart';
 import '../state/profile_state.dart';
 import '../state/theme_state.dart';
 import 'profile_screen.dart';
+import 'profile_summary_screen.dart';
 import 'results_screen.dart';
 
 class MenuInputScreen extends ConsumerWidget {
@@ -29,7 +30,10 @@ class MenuInputScreen extends ConsumerWidget {
           icon: const Icon(Icons.person_outline),
           tooltip: 'Perfil',
           onPressed: () {
-            Navigator.of(context).pushNamed(ProfileScreen.routeName);
+            final routeName = profile.isComplete
+                ? ProfileSummaryScreen.routeName
+                : ProfileScreen.routeName;
+            Navigator.of(context).pushNamed(routeName);
           },
         ),
         actions: [
@@ -103,7 +107,7 @@ class MenuInputScreen extends ConsumerWidget {
                   ]
                       .map((value) => DropdownMenuItem(
                             value: value,
-                            child: Text(value.replaceAll('_', ' ')),
+                            child: Text(_mealTypeLabel(value)),
                           ))
                       .toList(),
                   onChanged: (value) {
@@ -118,7 +122,7 @@ class MenuInputScreen extends ConsumerWidget {
                   maxLines: 10,
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
-                    hintText: 'Ex: Frango grelhado, arroz, feijao, salada...',
+                    hintText: 'Ex: Frango grelhado, arroz, feijão, salada...',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
@@ -181,6 +185,18 @@ class MenuInputScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String _mealTypeLabel(String value) {
+  const labels = {
+    'cafe_da_manha': 'café da manhã',
+    'lanche_manha': 'lanche da manhã',
+    'almoco': 'almoço',
+    'lanche_tarde': 'lanche da tarde',
+    'jantar': 'jantar',
+    'ceia': 'ceia',
+  };
+  return labels[value] ?? value.replaceAll('_', ' ');
 }
 
 Future<void> _showMissingProfileDialog(BuildContext context) {

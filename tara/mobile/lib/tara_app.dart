@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'screens/menu_input_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/profile_summary_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
 import 'state/theme_state.dart';
@@ -23,6 +24,7 @@ class TaraApp extends ConsumerWidget {
       routes: {
         SplashScreen.routeName: (_) => const SplashScreen(),
         ProfileScreen.routeName: (_) => const ProfileScreen(),
+        ProfileSummaryScreen.routeName: (_) => const ProfileSummaryScreen(),
         MenuInputScreen.routeName: (_) => const MenuInputScreen(),
         ResultsScreen.routeName: (_) => const ResultsScreen(),
       },
