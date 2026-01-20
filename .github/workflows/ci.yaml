@@ -64,4 +64,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check JS syntax
-        run: node --check tara/web/app.js
+        run: node --check tara/web/landing.js

@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 
 from fastapi import APIRouter, FastAPI, HTTPException
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 
 from .calculator import Sex, ActivityLevel, calculate_profile
 from .agent import analyze_menu
+from .jobs import JobStatus, create_job, get_job
 from .logger import get_logger
 
 load_dotenv()
@@ -44,10 +46,11 @@ class AnalyzeRequest(BaseModel):
 
 
 @api_v1_router.post("/profile")
-def calculate_user_profile(request: ProfileRequest):
+async def calculate_user_profile(request: ProfileRequest):
     """Calcula metas nutricionais baseadas no perfil do usuário."""
     try:
-        profile = calculate_profile(
+        profile = await asyncio.to_thread(
+            calculate_profile,
             weight_kg=request.weight_kg,
             height_cm=request.height_cm,
             age=request.age,
@@ -65,10 +68,11 @@ def calculate_user_profile(request: ProfileRequest):
 
 
 @api_v1_router.post("/analyze")
-def analyze_menu_endpoint(request: AnalyzeRequest):
+async def analyze_menu_endpoint(request: AnalyzeRequest):
     """Analisa cardápio e retorna recomendações."""
     try:
-        profile = calculate_profile(
+        profile = await asyncio.to_thread(
+            calculate_profile,
             weight_kg=request.profile.weight_kg,
             height_cm=request.profile.height_cm,
             age=request.profile.age,
@@ -79,9 +83,18 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
             body_fat_percent=request.profile.body_fat_percent,
             lean_mass_kg=request.profile.lean_mass_kg,
         )
-        
-        result = analyze_menu(profile, request.menu_text, request.meal_type)
-        return {"profile": profile, "recommendation": result}
+
+        async def _runner() -> dict:
+            recommendation = await asyncio.to_thread(
+                analyze_menu,
+                profile,
+                request.menu_text,
+                request.meal_type,
+            )
+            return {"profile": profile, "recommendation": recommendation}
+
+        job_id = await create_job(_runner, timeout_seconds=120)
+        return {"job_id": job_id}
     except ValueError as e:
         logger.warning("Erro de validacao no analyze: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
@@ -89,6 +102,18 @@ def analyze_menu_endpoint(request: AnalyzeRequest):
         logger.exception("Erro inesperado no analyze: %s", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_v1_router.get("/analyze/{job_id}")
+async def analyze_menu_status(job_id: str):
+    job = await get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job não encontrado")
+    return {
+        "status": job.status,
+        "result": job.result,
+        "error": job.error,
+    }
 
 
 app.include_router(api_v1_router)

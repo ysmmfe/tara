@@ -9,7 +9,7 @@ def test_extract_foods_stub_client(monkeypatch):
     from tests.support.g4f.client import Client as StubClient
     import app.agent as agent_module
 
-    monkeypatch.setattr(agent_module, "Client", StubClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
     items = extract_foods("Frango grelhado\nArroz branco")
     assert items == ["Frango grelhado", "Arroz branco"]
 
@@ -19,7 +19,7 @@ def test_analyze_menu_stub_client(monkeypatch):
     from tests.support.g4f.client import Client as StubClient
     import app.agent as agent_module
 
-    monkeypatch.setattr(agent_module, "Client", StubClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
     profile = calculate_profile(
         weight_kg=70,
         height_cm=170,
@@ -62,7 +62,7 @@ def test_fallback_tries_next_model(monkeypatch):
                 raise RuntimeError("model down")
             return _Response(json.dumps(["arroz"]))
 
-    monkeypatch.setattr(agent_module, "Client", FailingClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: FailingClient())
     foods = extract_foods("Arroz")
     assert foods == ["arroz"]
 
@@ -92,6 +92,6 @@ def test_get_chat_with_fallback_returns_response(monkeypatch):
         def create(self, model: str, messages: list[dict], **kwargs):
             return _Response(json.dumps(["feijao"]))
 
-    monkeypatch.setattr(agent_module, "Client", StubClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
     response = agent_module.get_chat_with_fallback([{"role": "user", "content": "x"}])
     assert response.choices[0].message.content == "[\"feijao\"]"

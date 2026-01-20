@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -8,8 +10,25 @@ from app.main import app
 def test_api_profile_and_analyze(monkeypatch):
     from tests.support.g4f.client import Client as StubClient
     import app.agent as agent_module
+    import app.jobs as jobs_module
+    import app.main as main_module
 
-    monkeypatch.setattr(agent_module, "Client", StubClient)
+    monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
+
+    async def _run_immediately(runner, timeout_seconds: int) -> str:
+        job_id = "test-job"
+        result = await runner()
+        now = time.time()
+        jobs_module._jobs[job_id] = jobs_module.Job(
+            job_id=job_id,
+            status=jobs_module.JobStatus.done,
+            created_at=now,
+            updated_at=now,
+            result=result,
+        )
+        return job_id
+
+    monkeypatch.setattr(main_module, "create_job", _run_immediately)
     client = TestClient(app)
 
     profile_payload = {
@@ -35,5 +54,10 @@ def test_api_profile_and_analyze(monkeypatch):
 
     analyze_response = client.post("/api/v1/analyze", json=analyze_payload)
     assert analyze_response.status_code == 200
-    data = analyze_response.json()
-    assert "recommendation" in data
+    job_id = analyze_response.json()["job_id"]
+
+    status_response = client.get(f"/api/v1/analyze/{job_id}")
+    assert status_response.status_code == 200
+    payload = status_response.json()
+    assert payload["status"] == "done"
+    assert "recommendation" in payload["result"]

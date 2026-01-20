@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:http/http.dart' as http;
 
@@ -30,23 +31,51 @@ class ApiClient {
     required String menuText,
     required String mealType,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/v1/analyze');
+    final startUri = Uri.parse('$baseUrl/api/v1/analyze');
     final payload = {
       'profile': profile.toRequestJson(),
       'menu_text': menuText,
       'meal_type': mealType,
     };
-    final response = await _http.post(
-      uri,
+    final startResponse = await _http.post(
+      startUri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(payload),
     );
-    if (response.statusCode != 200) {
-      throw HttpException('Erro ao analisar cardápio', response);
+    if (startResponse.statusCode != 200) {
+      throw HttpException('Erro ao iniciar análise', startResponse);
     }
-    final decoded = utf8.decode(response.bodyBytes);
-    final data = jsonDecode(decoded) as Map<String, dynamic>;
-    return AnalyzeResult.fromJson(data);
+    final startDecoded = utf8.decode(startResponse.bodyBytes);
+    final startData = jsonDecode(startDecoded) as Map<String, dynamic>;
+    final jobId = startData['job_id']?.toString();
+    if (jobId == null || jobId.isEmpty) {
+      throw Exception('Resposta inválida do servidor');
+    }
+
+    final deadline = DateTime.now().add(const Duration(minutes: 2));
+    while (DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      final statusUri = Uri.parse('$baseUrl/api/v1/analyze/$jobId');
+      final statusResponse = await _http.get(statusUri);
+      if (statusResponse.statusCode != 200) {
+        throw HttpException('Erro ao consultar análise', statusResponse);
+      }
+      final statusDecoded = utf8.decode(statusResponse.bodyBytes);
+      final statusData = jsonDecode(statusDecoded) as Map<String, dynamic>;
+      final status = statusData['status']?.toString();
+      if (status == 'done') {
+        final result = statusData['result'];
+        if (result is Map<String, dynamic>) {
+          return AnalyzeResult.fromJson(result);
+        }
+        throw Exception('Resultado inválido da análise');
+      }
+      if (status == 'error') {
+        final error = statusData['error']?.toString() ?? 'Erro desconhecido';
+        throw Exception(error);
+      }
+    }
+    throw TimeoutException('Tempo limite ao aguardar análise');
   }
 }
 
