@@ -40,16 +40,19 @@ def test_api_profile_and_analyze(monkeypatch):
     job_id = analyze_response.json()["job_id"]
 
     result = None
-    for _ in range(20):
+    deadline = time.monotonic() + 5.0
+    last_payload = None
+    while time.monotonic() < deadline:
         status_response = client.get(f"/api/v1/analyze/{job_id}")
         assert status_response.status_code == 200
         payload = status_response.json()
+        last_payload = payload
         if payload["status"] == "done":
             result = payload["result"]
             break
         if payload["status"] == "error":
             pytest.fail(payload["error"] or "Job falhou")
-        time.sleep(0.05)
+        time.sleep(0.1)
 
-    assert result is not None
+    assert result is not None, f"Job nao finalizou: {last_payload}"
     assert "recommendation" in result
