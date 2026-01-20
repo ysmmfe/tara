@@ -1,4 +1,5 @@
 import json
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 from g4f.client import Client
 from g4f import Provider
@@ -25,6 +26,8 @@ _FALLBACK_MODELS = (
     "gpt-4o",
 )
 
+_LLM_TIMEOUT_SECONDS = 25
+
 _FALLBACK_PROVIDERS = (
     Provider.Chatai,
     Provider.OIVSCodeSer2,
@@ -39,6 +42,26 @@ _FALLBACK_PROVIDERS = (
 logger = get_logger("tara.agent")
 
 
+def _call_chat_completion(client: Client, messages: list[dict], model: str, provider):
+    return client.chat.completions.create(
+        model=model,
+        messages=messages,
+        provider=provider,
+    )
+
+
+def _call_with_timeout(client: Client, messages: list[dict], model: str, provider):
+    executor = ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(_call_chat_completion, client, messages, model, provider)
+    try:
+        return future.result(timeout=_LLM_TIMEOUT_SECONDS)
+    except FutureTimeoutError as exc:
+        logger.warning("LLM timeout com model=%s apos %ss", model, _LLM_TIMEOUT_SECONDS)
+        raise TimeoutError("Timeout ao chamar LLM") from exc
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
 def get_chat_with_fallback(messages: list[dict]):
     client = Client()
     last_error: Exception | None = None
@@ -46,15 +69,14 @@ def get_chat_with_fallback(messages: list[dict]):
     for model in _FALLBACK_MODELS:
         try:
             provider = IterListProvider(list(_FALLBACK_PROVIDERS), shuffle=False)
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                provider=provider,
-            )
+            response = _call_with_timeout(client, messages, model, provider)
             logger.info("LLM sucesso com model=%s", model)
             return response
         except (MissingAuthError, NoValidHarFileError) as exc:
             logger.warning("LLM falhou por auth/har com model=%s: %s", model, exc)
+            last_error = exc
+        except TimeoutError as exc:
+            logger.warning("LLM timeout com model=%s: %s", model, exc)
             last_error = exc
         except Exception as exc:
             logger.warning("LLM falhou com model=%s: %s", model, exc)
