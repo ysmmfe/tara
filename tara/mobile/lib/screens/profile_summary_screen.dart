@@ -27,7 +27,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Text(
-              'Confira seus dados e metas diarias.',
+              'Confira seus dados e metas diárias.',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colors.onSurface.withValues(alpha: 0.75),
               ),
@@ -63,7 +63,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Confira seus dados e metas diarias.',
+            'Confira seus dados e metas diárias.',
             style: theme.textTheme.titleMedium?.copyWith(
               color: colors.onSurface.withValues(alpha: 0.75),
             ),
@@ -90,15 +90,15 @@ class ProfileSummaryScreen extends ConsumerWidget {
                   value: profile.sex?.label ?? '-',
                 ),
                 _InfoRow(
-                  label: 'Nivel de atividade',
+                  label: 'Nível de atividade',
                   value: profile.activityLevel?.label ?? '-',
                 ),
                 _InfoRow(
-                  label: 'Deficit',
+                  label: 'Déficit',
                   value: '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
                 ),
                 _InfoRow(
-                  label: 'Refeicoes por dia',
+                  label: 'Refeições por dia',
                   value: profile.mealsPerDay.toString(),
                 ),
               ],
@@ -106,7 +106,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _InfoCard(
-            title: 'Metas nutricionais diarias',
+            title: 'Metas nutricionais diárias',
             child: summary.when(
               data: (value) {
                 if (value == null) {
@@ -124,7 +124,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
                       value: _formatNumber(value['target_calories'], 'kcal'),
                     ),
                     _InfoRow(
-                      label: 'Proteina',
+                      label: 'Proteína',
                       value: _formatNumber(macros['protein_g'], 'g'),
                     ),
                     _InfoRow(
@@ -145,7 +145,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
                 ),
               ),
               error: (error, _) => Text(
-                'Nao foi possivel carregar as metas: $error',
+                'Não foi possível carregar as metas: $error',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.error,
                 ),
@@ -172,7 +172,7 @@ class ProfileSummaryScreen extends ConsumerWidget {
                   (route) => false,
                 );
               },
-              child: const Text('Ir para a analise do menu'),
+              child: const Text('Ir para a análise do menu'),
             ),
           ),
         ],
