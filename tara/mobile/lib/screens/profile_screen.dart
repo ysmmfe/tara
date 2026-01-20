@@ -81,6 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 _NumberField(
                   label: 'Peso (kg)',
+                  showRequiredIndicator: profile.weightKg == null,
                   controller: _weightController,
                   onChanged: (value) =>
                       controller.updateWeight(_parseDouble(value)),
@@ -88,6 +89,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 12),
                 _NumberField(
                   label: 'Altura (cm)',
+                  showRequiredIndicator: profile.heightCm == null,
                   controller: _heightController,
                   onChanged: (value) =>
                       controller.updateHeight(_parseDouble(value)),
@@ -95,6 +97,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 12),
                 _NumberField(
                   label: 'Idade',
+                  showRequiredIndicator: profile.age == null,
                   controller: _ageController,
                   onChanged: (value) => controller.updateAge(_parseInt(value)),
                 ),
@@ -102,8 +105,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 DropdownButtonFormField<Sex>(
                   key: ValueKey(profile.sex),
                   initialValue: profile.sex,
-                  decoration: const InputDecoration(
-                    labelText: 'Sexo',
+                  decoration: InputDecoration(
+                    label: _RequiredLabel(
+                      label: 'Sexo',
+                      showIndicator: profile.sex == null,
+                    ),
                     border: OutlineInputBorder(),
                   ),
                   items: Sex.values
@@ -118,8 +124,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 DropdownButtonFormField<ActivityLevel>(
                   key: ValueKey(profile.activityLevel),
                   initialValue: profile.activityLevel,
-                  decoration: const InputDecoration(
-                    labelText: 'Nível de atividade',
+                  decoration: InputDecoration(
+                    label: _RequiredLabel(
+                      label: 'Nível de atividade',
+                      showIndicator: profile.activityLevel == null,
+                    ),
                     border: OutlineInputBorder(),
                   ),
                   items: ActivityLevel.values
@@ -180,11 +189,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 class _NumberField extends StatelessWidget {
   const _NumberField({
     required this.label,
+    required this.showRequiredIndicator,
     required this.controller,
     required this.onChanged,
   });
 
   final String label;
+  final bool showRequiredIndicator;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
@@ -194,10 +205,41 @@ class _NumberField extends StatelessWidget {
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
-        labelText: label,
+        label: _RequiredLabel(
+          label: label,
+          showIndicator: showRequiredIndicator,
+        ),
         border: const OutlineInputBorder(),
       ),
       onChanged: onChanged,
+    );
+  }
+}
+
+class _RequiredLabel extends StatelessWidget {
+  const _RequiredLabel({
+    required this.label,
+    required this.showIndicator,
+  });
+
+  final String label;
+  final bool showIndicator;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Text.rich(
+      TextSpan(
+        text: label,
+        children: showIndicator
+            ? [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: colors.error),
+                ),
+              ]
+            : const [],
+      ),
     );
   }
 }
