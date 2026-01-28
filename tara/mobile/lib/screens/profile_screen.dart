@@ -5,6 +5,8 @@ import '../models/profile.dart';
 import '../state/profile_state.dart';
 import 'menu_input_screen.dart';
 import 'profile_summary_screen.dart';
+import '../widgets/tara_background.dart';
+import '../widgets/tara_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -61,126 +63,122 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Seu perfil'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'Configure seus dados para calcular as metas.',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colors.onSurface.withValues(alpha: 0.75),
+      body: TaraBackground(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(
+              'Configure seus dados para calcular as metas.',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colors.onSurface.withValues(alpha: 0.75),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colors.outline),
-            ),
-            child: Column(
-              children: [
-                _NumberField(
-                  label: 'Peso (kg)',
-                  showRequiredIndicator: profile.weightKg == null,
-                  controller: _weightController,
-                  onChanged: (value) =>
-                      controller.updateWeight(_parseDouble(value)),
-                ),
-                const SizedBox(height: 12),
-                _NumberField(
-                  label: 'Altura (cm)',
-                  showRequiredIndicator: profile.heightCm == null,
-                  controller: _heightController,
-                  onChanged: (value) =>
-                      controller.updateHeight(_parseDouble(value)),
-                ),
-                const SizedBox(height: 12),
-                _NumberField(
-                  label: 'Idade',
-                  showRequiredIndicator: profile.age == null,
-                  controller: _ageController,
-                  onChanged: (value) => controller.updateAge(_parseInt(value)),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<Sex>(
-                  key: ValueKey(profile.sex),
-                  initialValue: profile.sex,
-                  decoration: InputDecoration(
-                    label: _RequiredLabel(
-                      label: 'Sexo',
-                      showIndicator: profile.sex == null,
+            const SizedBox(height: 20),
+            TaraCard(
+              child: Column(
+                children: [
+                  _NumberField(
+                    label: 'Peso (kg)',
+                    showRequiredIndicator: profile.weightKg == null,
+                    controller: _weightController,
+                    onChanged: (value) =>
+                        controller.updateWeight(_parseDouble(value)),
+                  ),
+                  const SizedBox(height: 12),
+                  _NumberField(
+                    label: 'Altura (cm)',
+                    showRequiredIndicator: profile.heightCm == null,
+                    controller: _heightController,
+                    onChanged: (value) =>
+                        controller.updateHeight(_parseDouble(value)),
+                  ),
+                  const SizedBox(height: 12),
+                  _NumberField(
+                    label: 'Idade',
+                    showRequiredIndicator: profile.age == null,
+                    controller: _ageController,
+                    onChanged: (value) => controller.updateAge(_parseInt(value)),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<Sex>(
+                    key: ValueKey(profile.sex),
+                    initialValue: profile.sex,
+                    decoration: InputDecoration(
+                      label: _RequiredLabel(
+                        label: 'Sexo',
+                        showIndicator: profile.sex == null,
+                      ),
+                      border: const OutlineInputBorder(),
                     ),
-                    border: const OutlineInputBorder(),
+                    items: Sex.values
+                        .map((sex) => DropdownMenuItem(
+                              value: sex,
+                              child: Text(sex.label),
+                            ))
+                        .toList(),
+                    onChanged: controller.updateSex,
                   ),
-                  items: Sex.values
-                      .map((sex) => DropdownMenuItem(
-                            value: sex,
-                            child: Text(sex.label),
-                          ))
-                      .toList(),
-                  onChanged: controller.updateSex,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<ActivityLevel>(
-                  key: ValueKey(profile.activityLevel),
-                  initialValue: profile.activityLevel,
-                  decoration: InputDecoration(
-                    label: _RequiredLabel(
-                      label: 'Nível de atividade',
-                      showIndicator: profile.activityLevel == null,
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<ActivityLevel>(
+                    key: ValueKey(profile.activityLevel),
+                    initialValue: profile.activityLevel,
+                    decoration: InputDecoration(
+                      label: _RequiredLabel(
+                        label: 'Nível de atividade',
+                        showIndicator: profile.activityLevel == null,
+                      ),
+                      border: const OutlineInputBorder(),
                     ),
-                    border: const OutlineInputBorder(),
+                    items: ActivityLevel.values
+                        .map((level) => DropdownMenuItem(
+                              value: level,
+                              child: Text(level.label),
+                            ))
+                        .toList(),
+                    onChanged: controller.updateActivity,
                   ),
-                  items: ActivityLevel.values
-                      .map((level) => DropdownMenuItem(
-                            value: level,
-                            child: Text(level.label),
-                          ))
-                      .toList(),
-                  onChanged: controller.updateActivity,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Déficit calórico: ${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurface.withValues(alpha: 0.75),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Déficit calórico: ${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurface.withValues(alpha: 0.75),
+                    ),
                   ),
-                ),
-                Slider(
-                  min: 0.1,
-                  max: 0.3,
-                  divisions: 4,
-                  value: profile.deficitPercent,
-                  label:
-                      '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                  onChanged: controller.updateDeficit,
-                ),
-                const SizedBox(height: 12),
-              ],
+                  Slider(
+                    min: 0.1,
+                    max: 0.3,
+                    divisions: 4,
+                    value: profile.deficitPercent,
+                    label:
+                        '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
+                    onChanged: controller.updateDeficit,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: profile.isComplete
-                  ? () async {
-                      await controller.save();
-                      if (!context.mounted) {
-                        return;
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: profile.isComplete
+                    ? () async {
+                        await controller.save();
+                        if (!context.mounted) {
+                          return;
+                        }
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          ProfileSummaryScreen.routeName,
+                          (route) =>
+                              route.settings.name == MenuInputScreen.routeName,
+                        );
                       }
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        ProfileSummaryScreen.routeName,
-                        (route) =>
-                            route.settings.name == MenuInputScreen.routeName,
-                      );
-                    }
-                  : null,
-              child: const Text('Salvar perfil'),
+                    : null,
+                child: const Text('Salvar perfil'),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
