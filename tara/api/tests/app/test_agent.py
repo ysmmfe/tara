@@ -1,6 +1,7 @@
+import asyncio
 import pytest
 
-from app.agent import analyze_menu, extract_foods
+from app.agent import analyze_menu, extract_foods, get_chat_with_fallback
 from app.calculator import ActivityLevel, Sex, calculate_profile
 
 
@@ -10,7 +11,7 @@ def test_extract_foods_stub_client(monkeypatch):
     import app.agent as agent_module
 
     monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
-    items = extract_foods("Frango grelhado\nArroz branco")
+    items = asyncio.run(extract_foods("Frango grelhado\nArroz branco"))
     assert items == ["Frango grelhado", "Arroz branco"]
 
 
@@ -30,7 +31,9 @@ def test_analyze_menu_stub_client(monkeypatch):
         meals_per_day=4,
     )
 
-    result = analyze_menu(profile, "Frango grelhado\nArroz branco", "almoco")
+    result = asyncio.run(
+        analyze_menu(profile, "Frango grelhado\nArroz branco", "almoco")
+    )
 
     assert result["escolhas"][0]["alimento"] == "stub"
 
@@ -57,13 +60,13 @@ def test_fallback_tries_next_model(monkeypatch):
             self.chat = self
             self.completions = self
 
-        def create(self, model: str, messages: list[dict], **kwargs):
+        async def create(self, model: str, messages: list[dict], **kwargs):
             if model == "gpt-5.2":
                 raise RuntimeError("model down")
             return _Response(json.dumps(["arroz"]))
 
     monkeypatch.setattr(agent_module, "_create_client", lambda: FailingClient())
-    foods = extract_foods("Arroz")
+    foods = asyncio.run(extract_foods("Arroz"))
     assert foods == ["arroz"]
 
 
@@ -89,9 +92,9 @@ def test_get_chat_with_fallback_returns_response(monkeypatch):
             self.chat = self
             self.completions = self
 
-        def create(self, model: str, messages: list[dict], **kwargs):
+        async def create(self, model: str, messages: list[dict], **kwargs):
             return _Response(json.dumps(["feijao"]))
 
     monkeypatch.setattr(agent_module, "_create_client", lambda: StubClient())
-    response = agent_module.get_chat_with_fallback([{"role": "user", "content": "x"}])
+    response = asyncio.run(get_chat_with_fallback([{"role": "user", "content": "x"}]))
     assert response.choices[0].message.content == "[\"feijao\"]"

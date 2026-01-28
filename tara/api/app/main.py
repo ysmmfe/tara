@@ -85,15 +85,14 @@ async def analyze_menu_endpoint(request: AnalyzeRequest):
         )
 
         async def _runner() -> dict:
-            recommendation = await asyncio.to_thread(
-                analyze_menu,
+            recommendation = await analyze_menu(
                 profile,
                 request.menu_text,
                 request.meal_type,
             )
             return {"profile": profile, "recommendation": recommendation}
 
-        job_id = await create_job(_runner, timeout_seconds=120)
+        job_id = await create_job(_runner, timeout_seconds=180)
         return {"job_id": job_id}
     except ValueError as e:
         logger.warning("Erro de validacao no analyze: %s", e)

@@ -1,11 +1,10 @@
+import asyncio
 import json
-import multiprocessing as mp
-import queue
 
-from g4f.client import Client as G4FClient
+from g4f.client import AsyncClient as G4FClient
 from g4f import Provider
 from g4f.errors import MissingAuthError, NoValidHarFileError
-from g4f.providers.retry_provider import IterListProvider
+from g4f.Provider import RetryProvider
 
 from .logger import get_logger
 
@@ -42,23 +41,8 @@ _FALLBACK_PROVIDERS = (
 
 logger = get_logger("tara.agent")
 
-class _Message:
-    def __init__(self, content: str):
-        self.content = content
-
-
-class _Choice:
-    def __init__(self, content: str):
-        self.message = _Message(content)
-
-
-class _Response:
-    def __init__(self, content: str):
-        self.choices = [_Choice(content)]
-
-
 def _build_provider():
-    return IterListProvider(list(_FALLBACK_PROVIDERS), shuffle=False)
+    return RetryProvider(list(_FALLBACK_PROVIDERS), shuffle=False)
 
 def _default_create_client():
     return G4FClient()
@@ -68,71 +52,32 @@ def _create_client():
     return _default_create_client()
 
 
-def _call_chat_completion(messages: list[dict], model: str, provider):
+async def _call_chat_completion(messages: list[dict], model: str, provider):
     client = _create_client()
-    return client.chat.completions.create(
+    return await client.chat.completions.create(
         model=model,
         messages=messages,
         provider=provider,
     )
 
 
-def _call_in_subprocess(result_queue, messages: list[dict], model: str):
+async def _call_with_timeout(messages: list[dict], model: str):
     try:
-        response = _call_chat_completion(messages, model, _build_provider())
-        content = response.choices[0].message.content
-        result_queue.put(("ok", content))
-    except Exception as exc:
-        result_queue.put(("err", exc.__class__.__name__, str(exc)))
-
-
-def _build_response_from_content(content: str):
-    return _Response(content)
-
-
-def _call_with_timeout(messages: list[dict], model: str):
-    if _create_client is not _default_create_client:
-        return _call_chat_completion(messages, model, _build_provider())
-
-    ctx = mp.get_context("spawn")
-    result_queue = ctx.Queue(maxsize=1)
-    process = ctx.Process(
-        target=_call_in_subprocess,
-        args=(result_queue, messages, model),
-        daemon=True,
-    )
-    process.start()
-    process.join(_LLM_TIMEOUT_SECONDS)
-
-    if process.is_alive():
-        process.terminate()
-        process.join()
+        return await asyncio.wait_for(
+            _call_chat_completion(messages, model, _build_provider()),
+            timeout=_LLM_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError as exc:
         logger.warning("LLM timeout com model=%s apos %ss", model, _LLM_TIMEOUT_SECONDS)
-        raise TimeoutError("Timeout ao chamar LLM")
-
-    try:
-        result = result_queue.get_nowait()
-    except queue.Empty as exc:
-        raise RuntimeError("LLM subprocess terminou sem resposta.") from exc
-
-    if result[0] == "ok":
-        return _build_response_from_content(result[1])
-
-    error_type = result[1]
-    error_message = result[2]
-    if error_type == "MissingAuthError":
-        raise MissingAuthError(error_message)
-    if error_type == "NoValidHarFileError":
-        raise NoValidHarFileError(error_message)
-    raise RuntimeError(f"Falha ao chamar LLM: {error_type}: {error_message}")
+        raise TimeoutError("Timeout ao chamar LLM") from exc
 
 
-def get_chat_with_fallback(messages: list[dict]):
+async def get_chat_with_fallback(messages: list[dict]):
     last_error: Exception | None = None
 
     for model in _FALLBACK_MODELS:
         try:
-            response = _call_with_timeout(messages, model)
+            response = await _call_with_timeout(messages, model)
             logger.info("LLM sucesso com model=%s", model)
             return response
         except (MissingAuthError, NoValidHarFileError) as exc:
@@ -150,10 +95,10 @@ def get_chat_with_fallback(messages: list[dict]):
     raise RuntimeError("Nenhum modelo disponível para completar a requisicao.")
 
 
-def extract_foods(menu_text: str) -> list[str]:
+async def extract_foods(menu_text: str) -> list[str]:
     """Extrai lista de alimentos individuais do texto do cardápio."""
     logger.info("extract_foods prompt: %s", _EXTRACT_PROMPT.format(menu_text=menu_text))
-    response = get_chat_with_fallback(
+    response = await get_chat_with_fallback(
         [
             {"role": "user", "content": _EXTRACT_PROMPT.format(menu_text=menu_text)},
         ]
@@ -175,13 +120,13 @@ def extract_foods(menu_text: str) -> list[str]:
         raise ValueError("Resposta invalida do modelo em extract_foods.") from exc
 
 
-def analyze_menu(profile: dict, menu_text: str, meal_type: str = "almoco") -> dict:
+async def analyze_menu(profile: dict, menu_text: str, meal_type: str = "almoco") -> dict:
     """Analisa cardápio e retorna recomendações baseadas no perfil do usuário."""
     user_prompt = build_user_prompt(profile, menu_text, meal_type)
     logger.info("system prompt: %s", SYSTEM_PROMPT)
     logger.info("user prompt: %s", user_prompt)
     
-    response = get_chat_with_fallback(
+    response = await get_chat_with_fallback(
         [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
