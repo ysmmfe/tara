@@ -4,8 +4,6 @@ import json
 from g4f.client import AsyncClient as G4FClient
 from g4f import Provider
 from g4f.errors import MissingAuthError, NoValidHarFileError
-from g4f.Provider import RetryProvider
-
 from .logger import get_logger
 
 from .prompts import SYSTEM_PROMPT, build_user_prompt
@@ -41,9 +39,6 @@ _FALLBACK_PROVIDERS = (
 
 logger = get_logger("tara.agent")
 
-def _build_provider():
-    return RetryProvider(list(_FALLBACK_PROVIDERS), shuffle=False)
-
 def _default_create_client():
     return G4FClient()
 
@@ -61,15 +56,32 @@ async def _call_chat_completion(messages: list[dict], model: str, provider):
     )
 
 
-async def _call_with_timeout(messages: list[dict], model: str):
+async def _call_with_timeout(messages: list[dict], model: str, provider):
     try:
         return await asyncio.wait_for(
-            _call_chat_completion(messages, model, _build_provider()),
+            _call_chat_completion(messages, model, provider),
             timeout=_LLM_TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError as exc:
-        logger.warning("LLM timeout com model=%s apos %ss", model, _LLM_TIMEOUT_SECONDS)
         raise TimeoutError("Timeout ao chamar LLM") from exc
+
+
+async def _call_with_providers(messages: list[dict], model: str):
+    last_error: Exception | None = None
+
+    for provider in _FALLBACK_PROVIDERS:
+        try:
+            return await _call_with_timeout(messages, model, provider)
+        except (MissingAuthError, NoValidHarFileError) as exc:
+            last_error = exc
+        except TimeoutError as exc:
+            last_error = exc
+        except Exception as exc:
+            last_error = exc
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("Nenhum provider disponível para completar a requisicao.")
 
 
 async def get_chat_with_fallback(messages: list[dict]):
@@ -77,7 +89,7 @@ async def get_chat_with_fallback(messages: list[dict]):
 
     for model in _FALLBACK_MODELS:
         try:
-            response = await _call_with_timeout(messages, model)
+            response = await _call_with_providers(messages, model)
             logger.info("LLM sucesso com model=%s", model)
             return response
         except (MissingAuthError, NoValidHarFileError) as exc:
