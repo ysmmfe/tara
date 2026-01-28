@@ -52,7 +52,7 @@ class ApiClient {
       throw Exception('Resposta inválida do servidor');
     }
 
-    final deadline = DateTime.now().add(const Duration(minutes: 3));
+    final deadline = DateTime.now().add(const Duration(minutes: 2));
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(const Duration(seconds: 2));
       final statusUri = Uri.parse('$baseUrl/api/v1/analyze/$jobId');
