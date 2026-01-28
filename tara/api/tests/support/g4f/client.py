@@ -18,7 +18,7 @@ class _Response:
 
 class _ChatCompletions:
     @staticmethod
-    def create(model: str, messages: list[dict], **kwargs):
+    async def create(model: str, messages: list[dict], **kwargs):
         prompt = "\n".join(m.get("content", "") for m in messages)
 
         if "Extraia do texto abaixo uma lista" in prompt:
@@ -55,3 +55,7 @@ class _Chat:
 class Client:
     def __init__(self):
         self.chat = _Chat()
+
+
+class AsyncClient(Client):
+    pass
