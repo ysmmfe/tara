@@ -6,7 +6,6 @@ import 'screens/profile_screen.dart';
 import 'screens/profile_summary_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
-import 'state/theme_state.dart';
 import 'theme/brand_theme.dart';
 
 class TaraApp extends ConsumerWidget {
@@ -14,12 +13,9 @@ class TaraApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeControllerProvider);
     return MaterialApp(
       title: 'Tara',
       theme: BrandTheme.light(),
-      darkTheme: BrandTheme.dark(),
-      themeMode: themeMode,
       initialRoute: SplashScreen.routeName,
       routes: {
         SplashScreen.routeName: (_) => const SplashScreen(),
