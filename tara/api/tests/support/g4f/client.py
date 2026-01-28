@@ -55,3 +55,7 @@ class _Chat:
 class Client:
     def __init__(self):
         self.chat = _Chat()
+
+
+class AsyncClient(Client):
+    pass
