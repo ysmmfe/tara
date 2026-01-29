@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/menu_input_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/profile_summary_screen.dart';
+import 'screens/profile_welcome_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/training_profile_screen.dart';
 import 'theme/brand_theme.dart';
 
 class TaraApp extends ConsumerWidget {
@@ -19,7 +21,9 @@ class TaraApp extends ConsumerWidget {
       initialRoute: SplashScreen.routeName,
       routes: {
         SplashScreen.routeName: (_) => const SplashScreen(),
+        ProfileWelcomeScreen.routeName: (_) => const ProfileWelcomeScreen(),
         ProfileScreen.routeName: (_) => const ProfileScreen(),
+        TrainingProfileScreen.routeName: (_) => const TrainingProfileScreen(),
         ProfileSummaryScreen.routeName: (_) => const ProfileSummaryScreen(),
         MenuInputScreen.routeName: (_) => const MenuInputScreen(),
         ResultsScreen.routeName: (_) => const ResultsScreen(),

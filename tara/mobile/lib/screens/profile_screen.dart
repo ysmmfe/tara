@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/profile.dart';
 import '../state/profile_state.dart';
-import 'menu_input_screen.dart';
-import 'profile_summary_screen.dart';
+import 'training_profile_screen.dart';
 import '../widgets/tara_background.dart';
 import '../widgets/tara_card.dart';
 
@@ -21,9 +20,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _weightController;
   late final TextEditingController _heightController;
   late final TextEditingController _ageController;
-  late final TextEditingController _sessionMinutesController;
-  late final TextEditingController _daysAvailableController;
-  late final TextEditingController _musclePrioritiesController;
   late final ProviderSubscription<ProfileFormState> _profileSub;
 
   @override
@@ -32,43 +28,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightController = TextEditingController();
     _heightController = TextEditingController();
     _ageController = TextEditingController();
-    _sessionMinutesController = TextEditingController();
-    _daysAvailableController = TextEditingController();
-    _musclePrioritiesController = TextEditingController();
     final initial = ref.read(profileControllerProvider);
     _syncController(_weightController, initial.weightKg?.toStringAsFixed(0));
     _syncController(_heightController, initial.heightCm?.toStringAsFixed(0));
     _syncController(_ageController, initial.age?.toString());
-    _syncController(
-      _sessionMinutesController,
-      initial.sessionMinutes?.toString(),
-    );
-    _syncController(
-      _daysAvailableController,
-      _formatList(initial.daysAvailable),
-    );
-    _syncController(
-      _musclePrioritiesController,
-      _formatList(initial.musclePriorities),
-    );
     _profileSub = ref.listenManual<ProfileFormState>(
       profileControllerProvider,
       (prev, next) {
         _syncController(_weightController, next.weightKg?.toStringAsFixed(0));
         _syncController(_heightController, next.heightCm?.toStringAsFixed(0));
         _syncController(_ageController, next.age?.toString());
-        _syncController(
-          _sessionMinutesController,
-          next.sessionMinutes?.toString(),
-        );
-        _syncController(
-          _daysAvailableController,
-          _formatList(next.daysAvailable),
-        );
-        _syncController(
-          _musclePrioritiesController,
-          _formatList(next.musclePriorities),
-        );
       },
     );
   }
@@ -79,9 +48,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightController.dispose();
     _heightController.dispose();
     _ageController.dispose();
-    _sessionMinutesController.dispose();
-    _daysAvailableController.dispose();
-    _musclePrioritiesController.dispose();
     super.dispose();
   }
 
@@ -89,9 +55,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profile = ref.watch(profileControllerProvider);
     final controller = ref.read(profileControllerProvider.notifier);
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Seu perfil'),
@@ -101,10 +64,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             Text(
-              'Configure seus dados para calcular as metas.',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colors.onSurface.withValues(alpha: 0.75),
-              ),
+              'Vamos começar com seus dados básicos.',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 20),
             TaraCard(
@@ -152,78 +113,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: controller.updateSex,
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<ActivityLevel>(
-                    key: ValueKey(profile.activityLevel),
-                    initialValue: profile.activityLevel,
-                    decoration: InputDecoration(
-                      label: _RequiredLabel(
-                        label: 'Nível de atividade',
-                        showIndicator: profile.activityLevel == null,
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: ActivityLevel.values
-                        .map((level) => DropdownMenuItem(
-                              value: level,
-                              child: Text(level.label),
-                            ))
-                        .toList(),
-                    onChanged: controller.updateActivity,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Déficit calórico: ${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurface.withValues(alpha: 0.75),
-                    ),
-                  ),
-                  Slider(
-                    min: 0.1,
-                    max: 0.3,
-                    divisions: 4,
-                    value: profile.deficitPercent,
-                    label:
-                        '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                    onChanged: controller.updateDeficit,
-                  ),
-                  const SizedBox(height: 12),
-                  _NumberField(
-                    label: 'Minutos por treino',
-                    showRequiredIndicator: profile.sessionMinutes == null,
-                    controller: _sessionMinutesController,
-                    onChanged: (value) => controller.updateSessionMinutes(
-                      _parseInt(value),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _daysAvailableController,
-                    decoration: InputDecoration(
-                      label: _RequiredLabel(
-                        label: 'Dias disponíveis (ex: seg, qua)',
-                        showIndicator: profile.daysAvailable.isEmpty,
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    onChanged: (value) => controller.updateDaysAvailable(
-                      _parseList(value),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _musclePrioritiesController,
-                    decoration: InputDecoration(
-                      label: _RequiredLabel(
-                        label: 'Prioridades musculares (ex: peito, costas)',
-                        showIndicator: profile.musclePriorities.isEmpty,
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    onChanged: (value) => controller.updateMusclePriorities(
-                      _parseList(value),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -231,32 +120,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: profile.isComplete
+                onPressed: profile.isBasicComplete
                     ? () async {
-                        try {
-                          await controller.save();
-                        } catch (error) {
-                          if (!context.mounted) {
-                            return;
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao salvar perfil: $error'),
-                            ),
-                          );
+                        final goToTraining =
+                            ModalRoute.of(context)?.settings.arguments as bool?;
+                        if (goToTraining == false) {
+                          Navigator.of(context).pop();
                           return;
                         }
-                        if (!context.mounted) {
-                          return;
-                        }
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          ProfileSummaryScreen.routeName,
-                          (route) =>
-                              route.settings.name == MenuInputScreen.routeName,
-                        );
+                        Navigator.of(context)
+                            .pushNamed(TrainingProfileScreen.routeName);
                       }
                     : null,
-                child: const Text('Salvar perfil'),
+                child: const Text('Continuar'),
               ),
             ),
           ],
@@ -340,16 +216,4 @@ double? _parseDouble(String value) {
 
 int? _parseInt(String value) {
   return int.tryParse(value);
-}
-
-List<String> _parseList(String value) {
-  return value
-      .split(',')
-      .map((item) => item.trim())
-      .where((item) => item.isNotEmpty)
-      .toList();
-}
-
-String _formatList(List<String> values) {
-  return values.join(', ');
 }

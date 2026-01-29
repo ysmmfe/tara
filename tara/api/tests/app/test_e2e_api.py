@@ -24,6 +24,8 @@ def test_e2e_profile_and_analyze():
         "days_available": ["seg", "qua", "sex"],
         "session_minutes": 60,
         "muscle_priorities": ["peito", "costas"],
+        "experience_level": "iniciante",
+        "equipment": "academia_completa",
     }
 
     with httpx.Client(base_url=base_url, timeout=10) as client:

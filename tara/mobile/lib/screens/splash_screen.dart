@@ -6,6 +6,7 @@ import '../state/auth_state.dart';
 import '../state/profile_state.dart';
 import 'menu_input_screen.dart';
 import 'profile_screen.dart';
+import 'profile_welcome_screen.dart';
 import '../widgets/tara_background.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -53,8 +54,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       return;
     }
     final profile = ref.read(profileControllerProvider);
-    final routeName =
-        profile.isComplete ? MenuInputScreen.routeName : ProfileScreen.routeName;
+    final routeName = profile.isComplete
+        ? MenuInputScreen.routeName
+        : ProfileWelcomeScreen.routeName;
     Navigator.of(context).pushReplacementNamed(routeName);
   }
 

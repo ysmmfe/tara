@@ -6,6 +6,7 @@ import '../state/menu_state.dart';
 import '../state/profile_state.dart';
 import 'profile_screen.dart';
 import 'profile_summary_screen.dart';
+import 'profile_welcome_screen.dart';
 import 'results_screen.dart';
 import '../widgets/tara_background.dart';
 import '../widgets/tara_card.dart';
@@ -64,7 +65,7 @@ class _MenuInputScreenState extends ConsumerState<MenuInputScreen> {
           onPressed: () {
             final routeName = profile.isComplete
                 ? ProfileSummaryScreen.routeName
-                : ProfileScreen.routeName;
+                : ProfileWelcomeScreen.routeName;
             Navigator.of(context).pushNamed(routeName);
           },
         ),

@@ -5,6 +5,8 @@ import '../state/profile_state.dart';
 import '../state/profile_summary_state.dart';
 import 'menu_input_screen.dart';
 import 'profile_screen.dart';
+import 'profile_welcome_screen.dart';
+import 'training_profile_screen.dart';
 import '../widgets/tara_background.dart';
 import '../widgets/tara_card.dart';
 
@@ -48,7 +50,9 @@ class ProfileSummaryScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(ProfileScreen.routeName);
+                    Navigator.of(context).pushNamed(
+                      ProfileWelcomeScreen.routeName,
+                    );
                   },
                   child: const Text('Preencher perfil'),
                 ),
@@ -94,6 +98,14 @@ class ProfileSummaryScreen extends ConsumerWidget {
                     label: 'Sexo',
                     value: profile.sex?.label ?? '-',
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _InfoCard(
+              title: 'Preferências de treino',
+              child: Column(
+                children: [
                   _InfoRow(
                     label: 'Nível de atividade',
                     value: profile.activityLevel?.label ?? '-',
@@ -104,8 +116,24 @@ class ProfileSummaryScreen extends ConsumerWidget {
                         '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
                   ),
                   _InfoRow(
-                    label: 'Refeições por dia',
-                    value: profile.mealsPerDay.toString(),
+                    label: 'Dias de treino',
+                    value: _formatList(profile.daysAvailable),
+                  ),
+                  _InfoRow(
+                    label: 'Grupos musculares',
+                    value: _formatList(profile.musclePriorities),
+                  ),
+                  _InfoRow(
+                    label: 'Tempo por treino',
+                    value: _formatNumber(profile.sessionMinutes, 'min'),
+                  ),
+                  _InfoRow(
+                    label: 'Experiência',
+                    value: _experienceLabel(profile.experienceLevel),
+                  ),
+                  _InfoRow(
+                    label: 'Equipamentos',
+                    value: _equipmentLabel(profile.equipment),
                   ),
                 ],
               ),
@@ -163,15 +191,30 @@ class ProfileSummaryScreen extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: () {
-                  Navigator.of(context).pushNamed(ProfileScreen.routeName);
+                  Navigator.of(context).pushNamed(
+                    ProfileScreen.routeName,
+                    arguments: false,
+                  );
                 },
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Editar perfil'),
+                icon: const Icon(Icons.person_outline),
+                label: const Text('Editar dados básicos'),
                 style: FilledButton.styleFrom(
                   backgroundColor: colors.primaryContainer,
                   foregroundColor: colors.primary,
                   textStyle: const TextStyle(fontWeight: FontWeight.w700),
                 ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushNamed(TrainingProfileScreen.routeName);
+                },
+                icon: const Icon(Icons.fitness_center_outlined),
+                label: const Text('Editar treino'),
               ),
             ),
             const SizedBox(height: 12),
@@ -270,4 +313,29 @@ String _formatNumber(Object? value, String suffix) {
     return '$rounded $suffix'.trim();
   }
   return '$value $suffix'.trim();
+}
+
+String _formatList(List<String> values) {
+  if (values.isEmpty) {
+    return '-';
+  }
+  return values.join(', ');
+}
+
+String _experienceLabel(String? value) {
+  return switch (value) {
+    'iniciante' => 'Iniciante',
+    'intermediario' => 'Intermediário',
+    'avancado' => 'Avançado',
+    _ => '-',
+  };
+}
+
+String _equipmentLabel(String? value) {
+  return switch (value) {
+    'academia_completa' => 'Academia completa',
+    'academia_predio' => 'Academia de prédio',
+    'casa' => 'Casa',
+    _ => '-',
+  };
 }

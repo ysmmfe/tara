@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from prisma import Json
 
 from .db import db
 from .deps import get_current_user
@@ -30,6 +31,8 @@ async def get_profile(user=Depends(get_current_user)):
             "days_available": preferences.days_available,
             "session_minutes": preferences.session_minutes,
             "muscle_priorities": preferences.muscle_priorities,
+            "experience_level": preferences.experience_level,
+            "equipment": preferences.equipment,
         },
     )
 
@@ -40,18 +43,22 @@ async def upsert_profile(
 ):
     profile_data = payload.profile.model_dump(mode="json")
     preferences_data = payload.training_preferences.model_dump(mode="json")
+    preferences_data["days_available"] = Json(preferences_data["days_available"])
+    preferences_data["muscle_priorities"] = Json(
+        preferences_data["muscle_priorities"]
+    )
 
     profile = await db.userprofile.upsert(
         where={"user_id": user.id},
         data={
-            "create": {"user_id": user.id, **profile_data},
+            "create": {"user": {"connect": {"id": user.id}}, **profile_data},
             "update": profile_data,
         },
     )
     preferences = await db.trainingpreferences.upsert(
         where={"user_id": user.id},
         data={
-            "create": {"user_id": user.id, **preferences_data},
+            "create": {"user": {"connect": {"id": user.id}}, **preferences_data},
             "update": preferences_data,
         },
     )
@@ -72,5 +79,7 @@ async def upsert_profile(
             "days_available": preferences.days_available,
             "session_minutes": preferences.session_minutes,
             "muscle_priorities": preferences.muscle_priorities,
+            "experience_level": preferences.experience_level,
+            "equipment": preferences.equipment,
         },
     )

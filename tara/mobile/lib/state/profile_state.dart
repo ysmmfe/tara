@@ -17,6 +17,8 @@ class ProfileFormState {
     this.daysAvailable = const [],
     this.sessionMinutes,
     this.musclePriorities = const [],
+    this.experienceLevel,
+    this.equipment,
   });
 
   final double? weightKg;
@@ -29,6 +31,8 @@ class ProfileFormState {
   final List<String> daysAvailable;
   final int? sessionMinutes;
   final List<String> musclePriorities;
+  final String? experienceLevel;
+  final String? equipment;
 
   static const _unset = Object();
 
@@ -40,7 +44,12 @@ class ProfileFormState {
       activityLevel != null &&
       sessionMinutes != null &&
       daysAvailable.isNotEmpty &&
-      musclePriorities.isNotEmpty;
+      musclePriorities.isNotEmpty &&
+      experienceLevel != null &&
+      equipment != null;
+
+  bool get isBasicComplete =>
+      weightKg != null && heightCm != null && age != null && sex != null;
 
   ProfileFormState copyWith({
     Object? weightKg = _unset,
@@ -53,6 +62,8 @@ class ProfileFormState {
     Object? daysAvailable = _unset,
     Object? sessionMinutes = _unset,
     Object? musclePriorities = _unset,
+    Object? experienceLevel = _unset,
+    Object? equipment = _unset,
   }) {
     return ProfileFormState(
       weightKg:
@@ -79,6 +90,10 @@ class ProfileFormState {
       musclePriorities: musclePriorities == _unset
           ? this.musclePriorities
           : List<String>.from(musclePriorities as List),
+      experienceLevel: experienceLevel == _unset
+          ? this.experienceLevel
+          : experienceLevel as String?,
+      equipment: equipment == _unset ? this.equipment : equipment as String?,
     );
   }
 
@@ -94,6 +109,8 @@ class ProfileFormState {
       daysAvailable: other.daysAvailable,
       sessionMinutes: other.sessionMinutes,
       musclePriorities: other.musclePriorities,
+      experienceLevel: other.experienceLevel,
+      equipment: other.equipment,
     );
   }
 
@@ -109,6 +126,8 @@ class ProfileFormState {
       'days_available': daysAvailable,
       'session_minutes': sessionMinutes,
       'muscle_priorities': musclePriorities,
+      'experience_level': experienceLevel,
+      'equipment': equipment,
     };
   }
 
@@ -135,6 +154,8 @@ class ProfileFormState {
       'days_available': daysAvailable,
       'session_minutes': sessionMinutes,
       'muscle_priorities': musclePriorities,
+      'experience_level': experienceLevel,
+      'equipment': equipment,
     };
   }
 
@@ -156,6 +177,8 @@ class ProfileFormState {
               ?.map((item) => item.toString())
               .toList() ??
           const [],
+      experienceLevel: json['experience_level'] as String?,
+      equipment: json['equipment'] as String?,
     );
   }
 
@@ -182,6 +205,8 @@ class ProfileFormState {
               ?.map((item) => item.toString())
               .toList() ??
           const [],
+      experienceLevel: preferences['experience_level'] as String?,
+      equipment: preferences['equipment'] as String?,
     );
   }
 }
@@ -269,6 +294,16 @@ class ProfileController extends StateNotifier<ProfileFormState> {
 
   void updateMusclePriorities(List<String> value) {
     state = state.copyWith(musclePriorities: value);
+    _persist();
+  }
+
+  void updateExperienceLevel(String? value) {
+    state = state.copyWith(experienceLevel: value);
+    _persist();
+  }
+
+  void updateEquipment(String? value) {
+    state = state.copyWith(equipment: value);
     _persist();
   }
 }

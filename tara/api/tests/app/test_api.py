@@ -76,6 +76,8 @@ def test_api_profile_and_analyze(monkeypatch):
         "days_available": ["seg", "qua", "sex"],
         "session_minutes": 60,
         "muscle_priorities": ["peito", "costas"],
+        "experience_level": "iniciante",
+        "equipment": "academia_completa",
     }
 
     upsert_response = client.put(

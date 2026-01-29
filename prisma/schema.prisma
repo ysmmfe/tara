@@ -44,6 +44,8 @@ model TrainingPreferences {
   days_available   Json
   session_minutes  Int
   muscle_priorities Json
+  experience_level String   @default("iniciante")
+  equipment        String   @default("academia_completa")
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
   user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)

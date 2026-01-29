@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -34,7 +34,9 @@ class ProfilePayload(BaseModel):
 class TrainingPreferencesPayload(BaseModel):
     days_available: List[str] = Field(min_length=1)
     session_minutes: int = Field(ge=10, le=300)
-    muscle_priorities: List[str] = Field(min_length=1)
+    muscle_priorities: List[str] = Field(min_length=1, max_length=3)
+    experience_level: Literal["iniciante", "intermediario", "avancado"]
+    equipment: Literal["academia_completa", "academia_predio", "casa"]
 
 
 class ProfileUpdateRequest(BaseModel):
