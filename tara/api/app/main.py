@@ -1,18 +1,26 @@
 import asyncio
 import traceback
 
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from .calculator import Sex, ActivityLevel, calculate_profile
 from .agent import analyze_menu
+from .auth import router as auth_router
+from .db import db
+from .deps import get_current_user, require_complete_profile
 from .jobs import JobStatus, create_job, get_job
 from .logger import get_logger
+from .profile import router as profile_router
+from .schemas import ProfilePayload
 
 load_dotenv()
 
-app = FastAPI(title="Tara", description="Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde")
+app = FastAPI(
+    title="Tara",
+    description="Agente que calcula porções ideais de alimentos baseado no seu perfil de saúde",
+)
 api_v1_router = APIRouter(prefix="/api/v1")
 logger = get_logger()
 
@@ -27,26 +35,15 @@ def health_check():
     return {"status": "healthy"}
 
 
-class ProfileRequest(BaseModel):
-    weight_kg: float
-    height_cm: float
-    age: int
-    sex: Sex
-    activity_level: ActivityLevel
-    deficit_percent: float = 0.20
-    meals_per_day: int = 4
-    body_fat_percent: float | None = None
-    lean_mass_kg: float | None = None
-
-
 class AnalyzeRequest(BaseModel):
-    profile: ProfileRequest
     menu_text: str
     meal_type: str = "almoco"
 
 
 @api_v1_router.post("/profile")
-async def calculate_user_profile(request: ProfileRequest):
+async def calculate_user_profile(
+    request: ProfilePayload, user=Depends(get_current_user)
+):
     """Calcula metas nutricionais baseadas no perfil do usuário."""
     try:
         profile = await asyncio.to_thread(
@@ -68,20 +65,25 @@ async def calculate_user_profile(request: ProfileRequest):
 
 
 @api_v1_router.post("/analyze")
-async def analyze_menu_endpoint(request: AnalyzeRequest):
+async def analyze_menu_endpoint(
+    request: AnalyzeRequest, user=Depends(require_complete_profile)
+):
     """Analisa cardápio e retorna recomendações."""
     try:
+        profile = await db.userprofile.find_unique(where={"user_id": user.id})
+        if profile is None:
+            raise HTTPException(status_code=403, detail="Perfil incompleto")
         profile = await asyncio.to_thread(
             calculate_profile,
-            weight_kg=request.profile.weight_kg,
-            height_cm=request.profile.height_cm,
-            age=request.profile.age,
-            sex=request.profile.sex,
-            activity_level=request.profile.activity_level,
-            deficit_percent=request.profile.deficit_percent,
-            meals_per_day=request.profile.meals_per_day,
-            body_fat_percent=request.profile.body_fat_percent,
-            lean_mass_kg=request.profile.lean_mass_kg,
+            weight_kg=profile.weight_kg,
+            height_cm=profile.height_cm,
+            age=profile.age,
+            sex=Sex(profile.sex),
+            activity_level=ActivityLevel(profile.activity_level),
+            deficit_percent=profile.deficit_percent,
+            meals_per_day=profile.meals_per_day,
+            body_fat_percent=profile.body_fat_percent,
+            lean_mass_kg=profile.lean_mass_kg,
         )
 
         async def _runner() -> dict:
@@ -104,7 +106,7 @@ async def analyze_menu_endpoint(request: AnalyzeRequest):
 
 
 @api_v1_router.get("/analyze/{job_id}")
-async def analyze_menu_status(job_id: str):
+async def analyze_menu_status(job_id: str, user=Depends(get_current_user)):
     job = await get_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job não encontrado")
@@ -115,7 +117,19 @@ async def analyze_menu_status(job_id: str):
     }
 
 
+api_v1_router.include_router(auth_router)
+api_v1_router.include_router(profile_router)
 app.include_router(api_v1_router)
+
+
+@app.on_event("startup")
+async def _startup() -> None:
+    await db.connect()
+
+
+@app.on_event("shutdown")
+async def _shutdown() -> None:
+    await db.disconnect()
 
 
 

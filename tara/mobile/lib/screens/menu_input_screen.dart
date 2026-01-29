@@ -184,7 +184,6 @@ class _MenuInputScreenState extends ConsumerState<MenuInputScreen> {
                     return;
                   }
                   ref.read(analysisControllerProvider.notifier).analyze(
-                        profile: profile,
                         menuText: menuText,
                         mealType: mealType,
                       );

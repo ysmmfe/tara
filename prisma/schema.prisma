@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+model User {
+  id                         String                      @id @default(uuid())
+  name                       String
+  email                      String                      @unique
+  password_hash              String?
+  google_sub                 String?                     @unique
+  email_verified             Boolean                     @default(false)
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @updatedAt
+  profile                    UserProfile?
+  training_preferences       TrainingPreferences?
+  refresh_tokens             RefreshToken[]
+}
+
+model UserProfile {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  weight_kg       Float
+  height_cm       Float
+  age             Int
+  sex             String
+  activity_level  String
+  deficit_percent Float
+  meals_per_day   Int
+  body_fat_percent Float?
+  lean_mass_kg    Float?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model TrainingPreferences {
+  id               String   @id @default(uuid())
+  user_id          String   @unique
+  days_available   Json
+  session_minutes  Int
+  muscle_priorities Json
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id           String   @id @default(uuid())
+  user_id      String
+  token_hash   String
+  expires_at   DateTime
+  revoked_at   DateTime?
+  created_at   DateTime @default(now())
+  replaced_by  String?
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}

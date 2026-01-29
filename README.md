@@ -29,11 +29,22 @@ cd tara
 # Instale as dependências
 uv sync
 
+# Gere o client do Prisma (necessário para o banco)
+uv run prisma generate
+
 # Rode o servidor
 PYTHONPATH=tara/api uv run uvicorn app.main:app --reload
 ```
 
 O servidor vai rodar em `http://localhost:8000`.
+
+### Banco de dados (Postgres + Prisma)
+
+Crie o banco e aplique as migrations:
+
+```bash
+uv run prisma migrate dev --name init
+```
 
 ## Uso
 
@@ -43,11 +54,53 @@ Os arquivos da landing page ficam em `tara/web`. Sirva separadamente ou abra `ta
 
 ### Via API
 
-**1. Calcular perfil nutricional:**
+**Antes de usar:**
+- Configure o `DATABASE_URL` (Postgres)
+- Defina `SECRET_KEY`
+- Configure `GOOGLE_CLIENT_IDS` (lista separada por vírgula com seus Client IDs do Google)
+
+**1. Login com Google (Flutter):**
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_token": "TOKEN_DO_GOOGLE"
+  }'
+```
+
+Guarde o `access_token`.
+
+**2. Salvar perfil completo (obrigatorio):**
+
+```bash
+curl -X PUT http://localhost:8000/api/v1/me/profile \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -d '{
+    "profile": {
+      "weight_kg": 70,
+      "height_cm": 170,
+      "age": 30,
+      "sex": "male",
+      "activity_level": "moderate",
+      "deficit_percent": 0.20,
+      "meals_per_day": 4
+    },
+    "training_preferences": {
+      "days_available": ["seg", "qua", "sex"],
+      "session_minutes": 60,
+      "muscle_priorities": ["peito", "costas"]
+    }
+  }'
+```
+
+**3. Calcular perfil nutricional:**
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/profile \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
   -d '{
     "weight_kg": 70,
     "height_cm": 170,
@@ -59,21 +112,13 @@ curl -X POST http://localhost:8000/api/v1/profile \
   }'
 ```
 
-**2. Analisar cardápio:**
+**4. Analisar cardápio:**
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/analyze \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
   -d '{
-    "profile": {
-      "weight_kg": 70,
-      "height_cm": 170,
-      "age": 30,
-      "sex": "male",
-      "activity_level": "moderate",
-      "deficit_percent": 0.20,
-      "meals_per_day": 4
-    },
     "menu_text": "Frango grelhado\nArroz branco\nFeijão\nSalada",
     "meal_type": "almoco"
   }'

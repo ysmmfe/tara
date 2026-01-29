@@ -21,6 +21,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _weightController;
   late final TextEditingController _heightController;
   late final TextEditingController _ageController;
+  late final TextEditingController _sessionMinutesController;
+  late final TextEditingController _daysAvailableController;
+  late final TextEditingController _musclePrioritiesController;
   late final ProviderSubscription<ProfileFormState> _profileSub;
 
   @override
@@ -29,16 +32,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightController = TextEditingController();
     _heightController = TextEditingController();
     _ageController = TextEditingController();
+    _sessionMinutesController = TextEditingController();
+    _daysAvailableController = TextEditingController();
+    _musclePrioritiesController = TextEditingController();
     final initial = ref.read(profileControllerProvider);
     _syncController(_weightController, initial.weightKg?.toStringAsFixed(0));
     _syncController(_heightController, initial.heightCm?.toStringAsFixed(0));
     _syncController(_ageController, initial.age?.toString());
+    _syncController(
+      _sessionMinutesController,
+      initial.sessionMinutes?.toString(),
+    );
+    _syncController(
+      _daysAvailableController,
+      _formatList(initial.daysAvailable),
+    );
+    _syncController(
+      _musclePrioritiesController,
+      _formatList(initial.musclePriorities),
+    );
     _profileSub = ref.listenManual<ProfileFormState>(
       profileControllerProvider,
       (prev, next) {
         _syncController(_weightController, next.weightKg?.toStringAsFixed(0));
         _syncController(_heightController, next.heightCm?.toStringAsFixed(0));
         _syncController(_ageController, next.age?.toString());
+        _syncController(
+          _sessionMinutesController,
+          next.sessionMinutes?.toString(),
+        );
+        _syncController(
+          _daysAvailableController,
+          _formatList(next.daysAvailable),
+        );
+        _syncController(
+          _musclePrioritiesController,
+          _formatList(next.musclePriorities),
+        );
       },
     );
   }
@@ -49,6 +79,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightController.dispose();
     _heightController.dispose();
     _ageController.dispose();
+    _sessionMinutesController.dispose();
+    _daysAvailableController.dispose();
+    _musclePrioritiesController.dispose();
     super.dispose();
   }
 
@@ -154,6 +187,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: controller.updateDeficit,
                   ),
                   const SizedBox(height: 12),
+                  _NumberField(
+                    label: 'Minutos por treino',
+                    showRequiredIndicator: profile.sessionMinutes == null,
+                    controller: _sessionMinutesController,
+                    onChanged: (value) => controller.updateSessionMinutes(
+                      _parseInt(value),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _daysAvailableController,
+                    decoration: InputDecoration(
+                      label: _RequiredLabel(
+                        label: 'Dias disponíveis (ex: seg, qua)',
+                        showIndicator: profile.daysAvailable.isEmpty,
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => controller.updateDaysAvailable(
+                      _parseList(value),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _musclePrioritiesController,
+                    decoration: InputDecoration(
+                      label: _RequiredLabel(
+                        label: 'Prioridades musculares (ex: peito, costas)',
+                        showIndicator: profile.musclePriorities.isEmpty,
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => controller.updateMusclePriorities(
+                      _parseList(value),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -163,7 +233,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: FilledButton(
                 onPressed: profile.isComplete
                     ? () async {
-                        await controller.save();
+                        try {
+                          await controller.save();
+                        } catch (error) {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao salvar perfil: $error'),
+                            ),
+                          );
+                          return;
+                        }
                         if (!context.mounted) {
                           return;
                         }
@@ -258,4 +340,16 @@ double? _parseDouble(String value) {
 
 int? _parseInt(String value) {
   return int.tryParse(value);
+}
+
+List<String> _parseList(String value) {
+  return value
+      .split(',')
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList();
+}
+
+String _formatList(List<String> values) {
+  return values.join(', ');
 }

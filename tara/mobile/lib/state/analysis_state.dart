@@ -1,20 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/api_client.dart';
-import 'profile_state.dart';
-
-final apiBaseUrlProvider = Provider<String>((ref) {
-  const url = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://tara-ukju.onrender.com',
-  );
-  return url;
-});
-
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final baseUrl = ref.watch(apiBaseUrlProvider);
-  return ApiClient(baseUrl);
-});
+import '../services/api_client_provider.dart';
 
 class AnalysisController extends StateNotifier<AsyncValue<AnalyzeResult?>> {
   AnalysisController(this._api) : super(const AsyncValue.data(null));
@@ -22,14 +9,9 @@ class AnalysisController extends StateNotifier<AsyncValue<AnalyzeResult?>> {
   final ApiClient _api;
 
   Future<void> analyze({
-    required ProfileFormState profile,
     required String menuText,
     required String mealType,
   }) async {
-    if (!profile.isComplete) {
-      state = AsyncValue.error('Perfil incompleto', StackTrace.current);
-      return;
-    }
     if (menuText.trim().isEmpty) {
       state = AsyncValue.error('Informe o cardápio', StackTrace.current);
       return;
@@ -37,7 +19,6 @@ class AnalysisController extends StateNotifier<AsyncValue<AnalyzeResult?>> {
     state = const AsyncValue.loading();
     try {
       final result = await _api.analyzeMenu(
-        profile: profile,
         menuText: menuText,
         mealType: mealType,
       );
