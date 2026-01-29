@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/profile.dart';
 import '../state/profile_state.dart';
-import 'menu_input_screen.dart';
-import 'profile_summary_screen.dart';
+import 'training_profile_screen.dart';
 import '../widgets/tara_background.dart';
 import '../widgets/tara_card.dart';
 
@@ -56,9 +55,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profile = ref.watch(profileControllerProvider);
     final controller = ref.read(profileControllerProvider.notifier);
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Seu perfil'),
@@ -68,10 +64,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             Text(
-              'Configure seus dados para calcular as metas.',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colors.onSurface.withValues(alpha: 0.75),
-              ),
+              'Vamos começar com seus dados básicos.',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 20),
             TaraCard(
@@ -119,41 +113,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: controller.updateSex,
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<ActivityLevel>(
-                    key: ValueKey(profile.activityLevel),
-                    initialValue: profile.activityLevel,
-                    decoration: InputDecoration(
-                      label: _RequiredLabel(
-                        label: 'Nível de atividade',
-                        showIndicator: profile.activityLevel == null,
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: ActivityLevel.values
-                        .map((level) => DropdownMenuItem(
-                              value: level,
-                              child: Text(level.label),
-                            ))
-                        .toList(),
-                    onChanged: controller.updateActivity,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Déficit calórico: ${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurface.withValues(alpha: 0.75),
-                    ),
-                  ),
-                  Slider(
-                    min: 0.1,
-                    max: 0.3,
-                    divisions: 4,
-                    value: profile.deficitPercent,
-                    label:
-                        '${(profile.deficitPercent * 100).toStringAsFixed(0)}%',
-                    onChanged: controller.updateDeficit,
-                  ),
-                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -161,20 +120,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: profile.isComplete
+                onPressed: profile.isBasicComplete
                     ? () async {
-                        await controller.save();
-                        if (!context.mounted) {
+                        final goToTraining =
+                            ModalRoute.of(context)?.settings.arguments as bool?;
+                        if (goToTraining == false) {
+                          Navigator.of(context).pop();
                           return;
                         }
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          ProfileSummaryScreen.routeName,
-                          (route) =>
-                              route.settings.name == MenuInputScreen.routeName,
-                        );
+                        Navigator.of(context)
+                            .pushNamed(TrainingProfileScreen.routeName);
                       }
                     : null,
-                child: const Text('Salvar perfil'),
+                child: const Text('Continuar'),
               ),
             ),
           ],

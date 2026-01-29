@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'analysis_state.dart';
+import '../services/api_client_provider.dart';
 import 'profile_state.dart';
 
 final profileSummaryProvider =

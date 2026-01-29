@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/profile.dart';
+import '../services/api_client.dart';
+import '../services/api_client_provider.dart';
 import '../services/profile_storage.dart';
 
 class ProfileFormState {
@@ -12,6 +14,11 @@ class ProfileFormState {
     this.activityLevel,
     this.deficitPercent = 0.20,
     this.mealsPerDay = 3,
+    this.daysAvailable = const [],
+    this.sessionMinutes,
+    this.musclePriorities = const [],
+    this.experienceLevel,
+    this.equipment,
   });
 
   final double? weightKg;
@@ -21,6 +28,11 @@ class ProfileFormState {
   final ActivityLevel? activityLevel;
   final double deficitPercent;
   final int mealsPerDay;
+  final List<String> daysAvailable;
+  final int? sessionMinutes;
+  final List<String> musclePriorities;
+  final String? experienceLevel;
+  final String? equipment;
 
   static const _unset = Object();
 
@@ -29,7 +41,15 @@ class ProfileFormState {
       heightCm != null &&
       age != null &&
       sex != null &&
-      activityLevel != null;
+      activityLevel != null &&
+      sessionMinutes != null &&
+      daysAvailable.isNotEmpty &&
+      musclePriorities.isNotEmpty &&
+      experienceLevel != null &&
+      equipment != null;
+
+  bool get isBasicComplete =>
+      weightKg != null && heightCm != null && age != null && sex != null;
 
   ProfileFormState copyWith({
     Object? weightKg = _unset,
@@ -39,6 +59,11 @@ class ProfileFormState {
     Object? activityLevel = _unset,
     Object? deficitPercent = _unset,
     Object? mealsPerDay = _unset,
+    Object? daysAvailable = _unset,
+    Object? sessionMinutes = _unset,
+    Object? musclePriorities = _unset,
+    Object? experienceLevel = _unset,
+    Object? equipment = _unset,
   }) {
     return ProfileFormState(
       weightKg:
@@ -56,6 +81,19 @@ class ProfileFormState {
       mealsPerDay: mealsPerDay == _unset
           ? this.mealsPerDay
           : mealsPerDay as int,
+      daysAvailable: daysAvailable == _unset
+          ? this.daysAvailable
+          : List<String>.from(daysAvailable as List),
+      sessionMinutes: sessionMinutes == _unset
+          ? this.sessionMinutes
+          : sessionMinutes as int?,
+      musclePriorities: musclePriorities == _unset
+          ? this.musclePriorities
+          : List<String>.from(musclePriorities as List),
+      experienceLevel: experienceLevel == _unset
+          ? this.experienceLevel
+          : experienceLevel as String?,
+      equipment: equipment == _unset ? this.equipment : equipment as String?,
     );
   }
 
@@ -68,6 +106,11 @@ class ProfileFormState {
       activityLevel: other.activityLevel,
       deficitPercent: other.deficitPercent,
       mealsPerDay: other.mealsPerDay,
+      daysAvailable: other.daysAvailable,
+      sessionMinutes: other.sessionMinutes,
+      musclePriorities: other.musclePriorities,
+      experienceLevel: other.experienceLevel,
+      equipment: other.equipment,
     );
   }
 
@@ -80,10 +123,15 @@ class ProfileFormState {
       'activity_level': activityLevel?.apiValue,
       'deficit_percent': deficitPercent,
       'meals_per_day': mealsPerDay,
+      'days_available': daysAvailable,
+      'session_minutes': sessionMinutes,
+      'muscle_priorities': musclePriorities,
+      'experience_level': experienceLevel,
+      'equipment': equipment,
     };
   }
 
-  Map<String, dynamic> toRequestJson() {
+  Map<String, dynamic> toProfileRequestJson() {
     if (!isComplete) {
       throw StateError('Perfil incompleto');
     }
@@ -98,6 +146,19 @@ class ProfileFormState {
     };
   }
 
+  Map<String, dynamic> toPreferencesRequestJson() {
+    if (!isComplete) {
+      throw StateError('Perfil incompleto');
+    }
+    return {
+      'days_available': daysAvailable,
+      'session_minutes': sessionMinutes,
+      'muscle_priorities': musclePriorities,
+      'experience_level': experienceLevel,
+      'equipment': equipment,
+    };
+  }
+
   static ProfileFormState fromJson(Map<String, dynamic> json) {
     return ProfileFormState(
       weightKg: (json['weight_kg'] as num?)?.toDouble(),
@@ -107,16 +168,56 @@ class ProfileFormState {
       activityLevel: ActivityLevel.fromApiValue(json['activity_level'] as String?),
       deficitPercent: (json['deficit_percent'] as num?)?.toDouble() ?? 0.20,
       mealsPerDay: json['meals_per_day'] as int? ?? 3,
+      daysAvailable: (json['days_available'] as List?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      sessionMinutes: json['session_minutes'] as int?,
+      musclePriorities: (json['muscle_priorities'] as List?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      experienceLevel: json['experience_level'] as String?,
+      equipment: json['equipment'] as String?,
+    );
+  }
+
+  static ProfileFormState fromServer(Map<String, dynamic> json) {
+    final profile = json['profile'] as Map<String, dynamic>? ?? {};
+    final preferences =
+        json['training_preferences'] as Map<String, dynamic>? ?? {};
+    return ProfileFormState(
+      weightKg: (profile['weight_kg'] as num?)?.toDouble(),
+      heightCm: (profile['height_cm'] as num?)?.toDouble(),
+      age: profile['age'] as int?,
+      sex: Sex.fromApiValue(profile['sex'] as String?),
+      activityLevel: ActivityLevel.fromApiValue(
+        profile['activity_level'] as String?,
+      ),
+      deficitPercent: (profile['deficit_percent'] as num?)?.toDouble() ?? 0.20,
+      mealsPerDay: profile['meals_per_day'] as int? ?? 3,
+      daysAvailable: (preferences['days_available'] as List?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      sessionMinutes: preferences['session_minutes'] as int?,
+      musclePriorities: (preferences['muscle_priorities'] as List?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      experienceLevel: preferences['experience_level'] as String?,
+      equipment: preferences['equipment'] as String?,
     );
   }
 }
 
 class ProfileController extends StateNotifier<ProfileFormState> {
-  ProfileController(this._storage) : super(const ProfileFormState()) {
+  ProfileController(this._storage, this._api) : super(const ProfileFormState()) {
     _load();
   }
 
   final ProfileStorage _storage;
+  final ApiClient _api;
 
   Future<void> _load() async {
     final stored = await _storage.load();
@@ -125,7 +226,22 @@ class ProfileController extends StateNotifier<ProfileFormState> {
     }
   }
 
-  Future<void> save() => _storage.save(state.toJson());
+  Future<void> save() async {
+    await _storage.save(state.toJson());
+    if (state.isComplete) {
+      final remote = await _api.saveProfile(state);
+      state = state.copyFrom(remote);
+      await _storage.save(state.toJson());
+    }
+  }
+
+  Future<void> syncFromApi() async {
+    final remote = await _api.fetchProfile();
+    if (remote != null) {
+      state = state.copyFrom(remote);
+      await _storage.save(state.toJson());
+    }
+  }
 
   void _persist() {
     _storage.save(state.toJson());
@@ -165,6 +281,31 @@ class ProfileController extends StateNotifier<ProfileFormState> {
     state = state.copyWith(mealsPerDay: value);
     _persist();
   }
+
+  void updateDaysAvailable(List<String> value) {
+    state = state.copyWith(daysAvailable: value);
+    _persist();
+  }
+
+  void updateSessionMinutes(int? value) {
+    state = state.copyWith(sessionMinutes: value);
+    _persist();
+  }
+
+  void updateMusclePriorities(List<String> value) {
+    state = state.copyWith(musclePriorities: value);
+    _persist();
+  }
+
+  void updateExperienceLevel(String? value) {
+    state = state.copyWith(experienceLevel: value);
+    _persist();
+  }
+
+  void updateEquipment(String? value) {
+    state = state.copyWith(equipment: value);
+    _persist();
+  }
 }
 
 final profileStorageProvider = Provider<ProfileStorage>(
@@ -173,5 +314,8 @@ final profileStorageProvider = Provider<ProfileStorage>(
 
 final profileControllerProvider =
     StateNotifierProvider<ProfileController, ProfileFormState>(
-  (ref) => ProfileController(ref.read(profileStorageProvider)),
+  (ref) => ProfileController(
+    ref.read(profileStorageProvider),
+    ref.read(apiClientProvider),
+  ),
 );
